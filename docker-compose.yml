@@ -2,6 +2,8 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-docintel}
       POSTGRES_USER: ${POSTGRES_USER:-docintel_user}
@@ -21,6 +23,8 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    ports:
+      - "6379:6379"
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-redis_password_change_me}"]
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_password_change_me}", "ping"]
@@ -36,6 +40,8 @@ services:
       context: ./services/worker
       dockerfile: Dockerfile
     restart: unless-stopped
+    ports:
+      - "8001:8001"
     user: "10001:10001"
     environment:
       - POSTGRES_HOST=postgres

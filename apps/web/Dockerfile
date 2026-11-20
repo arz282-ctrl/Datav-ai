@@ -33,4 +33,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=5s --timeout=5s --retries=5 --start-period=10s \
   CMD node -e 'require("http").get("http://localhost:3000/api/health", (r) => process.exit(r.statusCode === 200 ? 0 : 1))' || exit 1
 
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "if [ -f .next/standalone/server.js ]; then node .next/standalone/server.js; elif [ -f .next/standalone/apps/web/server.js ]; then node .next/standalone/apps/web/server.js; elif [ -f server.js ]; then node server.js; else npm start; fi"]

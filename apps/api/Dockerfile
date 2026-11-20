@@ -9,10 +9,11 @@ RUN mkdir -p /data/uploads && chown -R 10001:10001 /data/uploads
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --omit=dev || npm install --omit=dev
+COPY package*.json tsconfig.json ./
+RUN npm install
 
 COPY . .
+RUN npm run build && npm prune --omit=dev
 RUN chown -R 10001:10001 /app
 
 USER 10001:10001
