@@ -1,0 +1,361 @@
+{
+  "inv_01_clean.pdf": {
+    "invoice_number": "INV-2026-001",
+    "invoice_date": "2026-01-15",
+    "supplier_name": "Apex Medical Supplies Inc",
+    "customer_name": "Sunrise Elderly Care Center",
+    "subtotal": 1250.0,
+    "tax": 100.0,
+    "total": 1350.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Wheelchair Footrest Replacement Pair",
+        "quantity": 5,
+        "unit_price": 150.0,
+        "total_price": 750.0
+      },
+      {
+        "description": "Pressure Relief Seat Cushions",
+        "quantity": 10,
+        "unit_price": 50.0,
+        "total_price": 500.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_02_clean.pdf": {
+    "invoice_number": "INV-2026-002",
+    "invoice_date": "2026-01-20",
+    "supplier_name": "Horizon Home Health Care",
+    "customer_name": "Beacon Hospice Care",
+    "subtotal": 2600.0,
+    "tax": 240.0,
+    "total": 2840.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Portable Oxygen Concentrator Filter Set",
+        "quantity": 20,
+        "unit_price": 80.0,
+        "total_price": 1600.0
+      },
+      {
+        "description": "Nasal Cannula Soft Dip 7ft (Case 50)",
+        "quantity": 10,
+        "unit_price": 100.0,
+        "total_price": 1000.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_03_clean.pdf": {
+    "invoice_number": "INV-2026-003",
+    "invoice_date": "2026-01-28",
+    "supplier_name": "MediEquip Solutions LLC",
+    "customer_name": "Oakwood Care Center",
+    "subtotal": 3750.5,
+    "tax": 375.0,
+    "total": 4125.5,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Hydraulic Patient Lift Sling Mesh XL",
+        "quantity": 3,
+        "unit_price": 450.0,
+        "total_price": 1350.0
+      },
+      {
+        "description": "Bedside Commode Chair Heavy Duty",
+        "quantity": 12,
+        "unit_price": 200.04,
+        "total_price": 2400.5
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_04_clean.pdf": {
+    "invoice_number": "INV-2026-004",
+    "invoice_date": "2026-02-02",
+    "supplier_name": "CareFirst Diagnostic Supplies",
+    "customer_name": "St. Jude Elderly Clinic",
+    "subtotal": 800.0,
+    "tax": 90.0,
+    "total": 890.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Blood Glucose Test Strips (Box 100)",
+        "quantity": 20,
+        "unit_price": 40.0,
+        "total_price": 800.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_05_clean.pdf": {
+    "invoice_number": "INV-2026-005",
+    "invoice_date": "2026-02-05",
+    "supplier_name": "Sterling Mobility Services",
+    "customer_name": "Golden Years Retreat",
+    "subtotal": 3150.0,
+    "tax": 300.0,
+    "total": 3450.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Motorized Wheelchair Lithium Battery 24V",
+        "quantity": 3,
+        "unit_price": 1050.0,
+        "total_price": 3150.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_06_scan_blur.pdf": {
+    "invoice_number": "INV-2026-006",
+    "invoice_date": "2026-02-08",
+    "supplier_name": "Prime Health Logistics",
+    "customer_name": "Valley Nursing Home",
+    "subtotal": 1500.0,
+    "tax": 120.0,
+    "total": 1620.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Sterile Surgical Gowns XL (Case 50)",
+        "quantity": 10,
+        "unit_price": 150.0,
+        "total_price": 1500.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_07_scan_skew.png": {
+    "invoice_number": "INV-2026-007",
+    "invoice_date": "2026-02-10",
+    "supplier_name": "BioCare Disposable Supplies",
+    "customer_name": "Serenity Senior Care",
+    "subtotal": 950.0,
+    "tax": 76.0,
+    "total": 1026.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Latex Examination Gloves Medium (Box 100)",
+        "quantity": 50,
+        "unit_price": 19.0,
+        "total_price": 950.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_08_scan_noisy.pdf": {
+    "invoice_number": "INV-2026-008",
+    "invoice_date": "2026-02-12",
+    "supplier_name": "Vanguard Medical Systems",
+    "customer_name": "Lakeside Medical Clinic",
+    "subtotal": 2100.0,
+    "tax": 189.0,
+    "total": 2289.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Vital Signs Monitor Stand Rolling Base",
+        "quantity": 6,
+        "unit_price": 350.0,
+        "total_price": 2100.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_09_multiframe.tiff": {
+    "invoice_number": "INV-2026-009",
+    "invoice_date": "2026-02-14",
+    "supplier_name": "Allied Care Equipment",
+    "customer_name": "Maplewood Senior Living",
+    "subtotal": 5600.0,
+    "tax": 0.0,
+    "total": 5600.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Hospital Bed Electric Motor",
+        "quantity": 2,
+        "unit_price": 2000.0,
+        "total_price": 4000.0
+      },
+      {
+        "description": "Bed Rail Safety Clamp Set",
+        "quantity": 2,
+        "unit_price": 800.0,
+        "total_price": 1600.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_10_multipage.pdf": {
+    "invoice_number": "INV-2026-010",
+    "invoice_date": "2026-02-16",
+    "supplier_name": "Comprehensive Senior Health Supplies",
+    "customer_name": "St. Paul Regional Medical Center",
+    "subtotal": 7200.0,
+    "tax": 650.0,
+    "total": 7850.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Air Mattresses Alternating Pressure System",
+        "quantity": 6,
+        "unit_price": 1200.0,
+        "total_price": 7200.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_11_multisheet.xlsx": {
+    "invoice_number": "INV-2026-011",
+    "invoice_date": "2026-02-18",
+    "supplier_name": "Elite Mobility Systems",
+    "customer_name": "Pine Crest Assisted Living",
+    "subtotal": 1950.0,
+    "tax": 150.0,
+    "total": 2100.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Aluminum Folding Walkers with Wheels",
+        "quantity": 30,
+        "unit_price": 65.0,
+        "total_price": 1950.0
+      }
+    ],
+    "expected_flags": []
+  },
+  "inv_12_legacy.xls": {
+    "invoice_number": "INV-2026-012",
+    "invoice_date": "2026-02-20",
+    "supplier_name": "Medline Regional Partners",
+    "customer_name": "Riverview Rehab Clinic",
+    "subtotal": 1600.0,
+    "tax": 150.0,
+    "total": 1750.0,
+    "currency": "USD",
+    "line_items": [],
+    "expected_flags": []
+  },
+  "inv_13_ledger.csv": {
+    "type": "ledger",
+    "row_count": 3,
+    "expected_flags": []
+  },
+  "inv_14_ledger.xlsx": {
+    "type": "ledger",
+    "row_count": 2,
+    "expected_flags": []
+  },
+  "inv_15_math_mismatch.pdf": {
+    "invoice_number": "INV-2026-015",
+    "invoice_date": "2026-02-22",
+    "supplier_name": "Erroneous Health Corp",
+    "customer_name": "Community Hospice",
+    "subtotal": 1000.0,
+    "tax": 100.0,
+    "total": 1250.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Defective Oxygen Monitor Set",
+        "quantity": 5,
+        "unit_price": 200.0,
+        "total_price": 1000.0
+      }
+    ],
+    "expected_flags": [
+      "MATH_MISMATCH"
+    ]
+  },
+  "inv_16_missing_field.pdf": {
+    "invoice_number": "INV-2026-016",
+    "invoice_date": null,
+    "supplier_name": "Incomplete Supplies LLC",
+    "customer_name": "St. Marys Home Care",
+    "subtotal": 500.0,
+    "tax": 50.0,
+    "total": 550.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Disposable Bed Protectors (Box 200)",
+        "quantity": 10,
+        "unit_price": 50.0,
+        "total_price": 500.0
+      }
+    ],
+    "expected_flags": [
+      "MISSING_FIELD"
+    ]
+  },
+  "inv_17_duplicate.pdf": {
+    "invoice_number": "INV-2026-001",
+    "invoice_date": "2026-01-15",
+    "supplier_name": "Apex Medical Supplies Inc",
+    "customer_name": "Sunrise Elderly Care Center",
+    "subtotal": 1250.0,
+    "tax": 100.0,
+    "total": 1350.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Wheelchair Footrest Replacement Pair",
+        "quantity": 5,
+        "unit_price": 150.0,
+        "total_price": 750.0
+      },
+      {
+        "description": "Pressure Relief Seat Cushions",
+        "quantity": 10,
+        "unit_price": 50.0,
+        "total_price": 500.0
+      }
+    ],
+    "expected_flags": [
+      "DUPLICATE_INVOICE"
+    ]
+  },
+  "inv_18_cross_mismatch.pdf": {
+    "invoice_number": "INV-2026-018",
+    "invoice_date": "2026-02-25",
+    "supplier_name": "CrossCare Medical Corp",
+    "customer_name": "Sunrise Elderly Care Center",
+    "subtotal": 3000.0,
+    "tax": 200.0,
+    "total": 3200.0,
+    "currency": "USD",
+    "line_items": [
+      {
+        "description": "Patient Monitoring Sensor Units",
+        "quantity": 10,
+        "unit_price": 300.0,
+        "total_price": 3000.0
+      }
+    ],
+    "expected_flags": [
+      "CROSS_VERIFY_MISMATCH"
+    ]
+  },
+  "inv_19_corrupt_bad_magic.pdf": {
+    "type": "corrupted",
+    "expected_flags": [
+      "CORRUPTED_DOCUMENT"
+    ],
+    "error_code": "CORRUPTED_MAGIC_BYTES"
+  },
+  "inv_20_corrupt_truncated.pdf": {
+    "type": "corrupted",
+    "expected_flags": [
+      "CORRUPTED_DOCUMENT"
+    ],
+    "error_code": "CORRUPTED_STREAM"
+  }
+}
