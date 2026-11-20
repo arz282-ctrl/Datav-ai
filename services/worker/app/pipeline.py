@@ -30,23 +30,12 @@ from app.db import (
     delete_unresolved_flags_for_document,
     get_db_cursor
 )
-try:
-    from app.parsers.pdf_parser import iter_pdf_pages
-    from app.parsers.image_parser import parse_image
-    from app.parsers.spreadsheet_parser import parse_spreadsheet
-except ImportError:
-    iter_pdf_pages = None
-    parse_image = None
-    parse_spreadsheet = None
-
-try:
-    from app.extractor.gemini_extractor import get_extractor
-    from app.extractor.grounding import ground
-    from app.extractor.embeddings import embed_texts
-except ImportError:
-    get_extractor = None
-    ground = None
-    embed_texts = None
+from app.parsers.pdf_parser import iter_pdf_pages
+from app.parsers.image_parser import parse_image
+from app.parsers.spreadsheet_parser import parse_spreadsheet
+from app.extractor.gemini_extractor import get_extractor
+from app.extractor.grounding import ground
+from app.extractor.embeddings import embed_texts
 from app.validator.rules import validate_invoice, compute_duplicate_hash
 from app.validator.cross_verify import cross_verify
 

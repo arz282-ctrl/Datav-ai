@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field
 # Queue Configuration & Payloads
 # ---------------------------------------------------------------------------
 QUEUE_PREFIX = "docint"
-QUEUE_INGEST = f"{QUEUE_PREFIX}:ingest"
-QUEUE_REVALIDATE = f"{QUEUE_PREFIX}:revalidate"
+QUEUE_INGEST = "ingest"
+QUEUE_REVALIDATE = "revalidate"
 
 class IngestJobPayload(BaseModel):
     documentId: str

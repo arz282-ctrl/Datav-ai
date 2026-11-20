@@ -62,6 +62,7 @@ async def lifespan(app: FastAPI):
                 "connection": redis_opts,
                 "concurrency": 2,
                 "lockDuration": 30000,
+                "prefix": QUEUE_PREFIX,
             }
         )
         # Revalidate queue: Concurrency 4
@@ -72,6 +73,7 @@ async def lifespan(app: FastAPI):
                 "connection": redis_opts,
                 "concurrency": 4,
                 "lockDuration": 30000,
+                "prefix": QUEUE_PREFIX,
             }
         )
         print("[Worker Service] BullMQ ingest (concurrency 2) and revalidate (concurrency 4) workers started.")
