@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { DynamicShaderBackground } from "@/components/ui/animated-shader-bg";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -449,13 +450,8 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen text-[var(--gd-ink)] selection:bg-[var(--gd-teal)]/30 selection:text-white">
-      {/* Studio Photo Ambient Backdrop */}
-      <img
-        src="https://cdn.21st.dev/assets/mirror/ea/ea9270b3b7246283219ac52fa77a1213e9d1efb285d76348d3620609ba6cefa7.jpg"
-        alt="Studio Atmosphere"
-        className="glass-bg-photo"
-      />
-      <div className="glass-bg-overlay" />
+      {/* Dynamic Animated Black Shader Background */}
+      <DynamicShaderBackground />
 
       {/* Floating Top Header Bar */}
       <header className="sticky top-4 z-30 mx-auto max-w-7xl px-4 sm:px-6">
