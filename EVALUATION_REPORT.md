@@ -65,13 +65,15 @@
 | `security.test.ts` (magic-byte, rate-limit, helmet) | 3 | ✅ All pass |
 | `auth.test.ts` (X-API-Key timing-safe) | 2 | ✅ All pass |
 
-### 2.3 Next.js 15 Build
+### 2.3 Next.js 15 Build & Glassy Design System
 
-**Evidence:** `SEEN` — `npm --prefix apps/web run build` → `Compiled successfully in 1103ms`, 0 TypeScript errors
+**Evidence:** `SEEN` — `npm --prefix apps/web run build` → `Compiled successfully in 892ms`, 0 TypeScript errors
+- **UI Design System:** Frosted glass aesthetic (`.glass-panel`, `.glass-card`, `.glass-pill`) with `@fontsource-variable/manrope` typography, studio backdrop filter, and CSS custom tokens (`--gd-rim`, `--gd-card`, `--gd-teal`, `--gd-coral`, `--gd-ochre`).
+- **Export & Printable Actions:** Added 1-click Clean JSON Export and auto-formatted printable PDF generator (`window.print()`) with audit trail embedding.
 
 | Route | Type | First Load JS |
 |-------|------|---------------|
-| `/` | Static | 109 kB |
+| `/` | Static | 112 kB |
 | `/_not-found` | Static | 104 kB |
 | `/api/health` | Dynamic | 103 kB |
 | `/api/proxy/[...path]` | Dynamic | 103 kB |

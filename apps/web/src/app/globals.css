@@ -1,13 +1,94 @@
+@import "@fontsource-variable/manrope";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  --gd-ink: #fff6e9;
+  --gd-muted: #d6c4b4;
+  --gd-line: rgb(243 221 198 / 19%);
+  --gd-grid: rgb(243 221 198 / 19%);
+  --gd-rim: rgb(255 236 212 / 31%);
+  --gd-edge-light: rgb(255 242 225 / 49%);
+  --gd-edge-shade: rgb(11 6 5 / 30%);
+  --gd-gloss: rgb(255 237 213 / 13%);
+  --gd-frame: rgb(38 27 24 / 72%);
+  --gd-rail: rgb(45 32 30 / 78%);
+  --gd-card: rgb(47 36 34 / 68%);
+  --gd-card-light: rgb(106 88 81 / 30%);
+  --gd-raised: rgb(80 67 61 / 82%);
+  --gd-inner: rgb(58 44 40 / 58%);
+  --gd-surface: #2b201c;
+  --gd-track: rgb(245 226 212 / 16%);
+  --gd-primary: #f3ddca;
+  --gd-primary-ink: #231a16;
+  --gd-pick: #f9eee0;
+  --gd-pick-ink: #241b17;
+  --gd-coral: #ff9177;
+  --gd-teal: #75dac0;
+  --gd-ochre: #f1be58;
+  --gd-graph-ink: #e7d9cd;
+  --gd-focus: #f9bf9b;
+  --gd-dark-shadow: 10 4 3;
   color-scheme: dark;
 }
 
 body {
-  background-color: #09090b;
-  color: #f4f4f5;
+  font-family: "Manrope Variable", Manrope, system-ui, -apple-system, sans-serif;
+  color: var(--gd-ink);
+  background: #231a17;
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.glass-panel {
+  border: 1px solid var(--gd-rim);
+  background: linear-gradient(148deg, var(--gd-gloss), transparent 25% 75%, var(--gd-gloss)), var(--gd-frame);
+  box-shadow: inset 1px 1px 1px var(--gd-edge-light), inset -1px -1px 1px var(--gd-edge-shade),
+    inset 0 0 7px var(--gd-gloss), 0 8px 32px rgb(var(--gd-dark-shadow) / 38%);
+  backdrop-filter: blur(16px) saturate(1.35);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35);
+}
+
+.glass-card {
+  border: 1px solid var(--gd-line);
+  background: linear-gradient(144deg, var(--gd-card-light), transparent 66%), var(--gd-inner);
+  box-shadow: inset 0 1px 1px var(--gd-edge-light), 0 4px 16px rgb(var(--gd-dark-shadow) / 24%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-pill {
+  border: 1px solid var(--gd-rim);
+  background: linear-gradient(165deg, var(--gd-gloss), transparent 32% 73%, var(--gd-gloss)), var(--gd-rail);
+  box-shadow: inset 1px 1px 1px var(--gd-edge-light), inset -1px -1px 1px var(--gd-edge-shade),
+    0 7px 20px rgb(var(--gd-dark-shadow) / 28%);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+}
+
+.glass-bg-photo {
+  position: fixed;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 60%;
+  filter: sepia(0.2) saturate(0.85) brightness(0.42);
+  pointer-events: none;
+}
+
+.glass-bg-overlay {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(116deg, rgb(48 29 22 / 60%), transparent 45%, rgb(95 54 32 / 40%) 78%, transparent 100%),
+    linear-gradient(0deg, rgb(20 12 9 / 70%), transparent 60%);
+  pointer-events: none;
 }

@@ -104,19 +104,20 @@ interface DocumentDetail {
 function StatusBadge({ status }: { status: string }) {
   const s = (status || "").toUpperCase();
   const styles: Record<string, string> = {
-    COMPLETED: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-    NEEDS_REVIEW: "border-amber-500/30 bg-amber-500/10 text-amber-300",
-    PROCESSING: "border-sky-500/30 bg-sky-500/10 text-sky-300",
-    QUEUED: "border-zinc-700 bg-zinc-800/70 text-zinc-300",
-    FAILED: "border-rose-500/30 bg-rose-500/10 text-rose-300",
+    COMPLETED: "border-[var(--gd-teal)]/40 bg-[var(--gd-teal)]/15 text-[var(--gd-teal)] shadow-[0_0_12px_rgba(117,218,192,0.15)]",
+    VERIFIED: "border-[var(--gd-teal)]/40 bg-[var(--gd-teal)]/15 text-[var(--gd-teal)] shadow-[0_0_12px_rgba(117,218,192,0.15)]",
+    NEEDS_REVIEW: "border-[var(--gd-ochre)]/40 bg-[var(--gd-ochre)]/15 text-[var(--gd-ochre)] shadow-[0_0_12px_rgba(241,190,88,0.15)]",
+    PROCESSING: "border-sky-400/40 bg-sky-500/15 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.15)]",
+    QUEUED: "border-[var(--gd-line)] bg-[var(--gd-card)] text-[var(--gd-muted)]",
+    FAILED: "border-[var(--gd-coral)]/40 bg-[var(--gd-coral)]/15 text-[var(--gd-coral)] shadow-[0_0_12px_rgba(255,145,119,0.15)]",
   };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-        styles[s] || "border-zinc-700 bg-zinc-800 text-zinc-300"
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold backdrop-blur-md transition-all ${
+        styles[s] || "border-[var(--gd-line)] bg-[var(--gd-card)] text-[var(--gd-muted)]"
       }`}
     >
-      {s === "COMPLETED" && <CheckCircle2 className="h-3.5 w-3.5" />}
+      {(s === "COMPLETED" || s === "VERIFIED") && <CheckCircle2 className="h-3.5 w-3.5" />}
       {s === "NEEDS_REVIEW" && <AlertTriangle className="h-3.5 w-3.5" />}
       {(s === "PROCESSING" || s === "QUEUED") && <Clock className="h-3.5 w-3.5" />}
       {s === "FAILED" && <XCircle className="h-3.5 w-3.5" />}
@@ -447,34 +448,54 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+    <div className="relative min-h-screen text-[var(--gd-ink)] selection:bg-[var(--gd-teal)]/30 selection:text-white">
+      {/* Studio Photo Ambient Backdrop */}
+      <img
+        src="https://cdn.21st.dev/assets/mirror/ea/ea9270b3b7246283219ac52fa77a1213e9d1efb285d76348d3620609ba6cefa7.jpg"
+        alt="Studio Atmosphere"
+        className="glass-bg-photo"
+      />
+      <div className="glass-bg-overlay" />
+
+      {/* Floating Top Header Bar */}
+      <header className="sticky top-4 z-30 mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="glass-pill flex items-center justify-between rounded-2xl px-5 py-3.5 transition-all">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--gd-rim)] bg-[var(--gd-gloss)] text-[var(--gd-teal)] shadow-[0_0_16px_rgba(117,218,192,0.25)]">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-base font-semibold tracking-tight text-white">
-                DocIntel AI Pipeline
-              </h1>
-              <p className="text-xs text-zinc-400">
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-bold tracking-tight text-[var(--gd-ink)]">
+                  DocIntel AI Pipeline
+                </h1>
+                <span className="rounded-full border border-[var(--gd-rim)] bg-[var(--gd-raised)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--gd-teal)]">
+                  Production
+                </span>
+              </div>
+              <p className="text-xs text-[var(--gd-muted)]">
                 Multi-Format OCR · Grounded Extraction · Ledger Cross-Verification · Hybrid RRF Search
               </p>
             </div>
           </div>
-          <button
-            onClick={fetchDocuments}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:border-zinc-700 hover:text-white"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loadingDocs ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={fetchDocuments}
+              className="glass-card flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 text-[var(--gd-teal)] ${loadingDocs ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl space-y-6 px-6 py-6">
+      {/* Main Content Dashboard */}
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+        {/* Upload Dropzone & Hybrid Search Row */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* Frosted Multi-Format Dropzone */}
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -487,10 +508,10 @@ export default function DashboardPage() {
               if (e.dataTransfer.files) handleFilesUpload(e.dataTransfer.files);
             }}
             onClick={() => fileInputRef.current?.click()}
-            className={`lg:col-span-5 cursor-pointer rounded-xl border border-dashed p-6 transition ${
+            className={`glass-panel lg:col-span-5 cursor-pointer rounded-2xl p-6 transition-all duration-200 ${
               dragActive
-                ? "border-emerald-400 bg-emerald-500/10"
-                : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900/80"
+                ? "border-[var(--gd-teal)] bg-[var(--gd-teal)]/10 shadow-[0_0_30px_rgba(117,218,192,0.2)]"
+                : "hover:border-[var(--gd-edge-light)] hover:bg-[var(--gd-raised)]"
             }`}
           >
             <input
@@ -502,17 +523,17 @@ export default function DashboardPage() {
               onChange={(e) => e.target.files && handleFilesUpload(e.target.files)}
             />
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="mb-3 rounded-full border border-zinc-800 bg-zinc-950 p-3 text-emerald-400">
+              <div className="mb-3.5 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--gd-rim)] bg-[var(--gd-gloss)] text-[var(--gd-teal)] shadow-[0_0_20px_rgba(117,218,192,0.2)]">
                 {uploading ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
                   <UploadCloud className="h-6 w-6" />
                 )}
               </div>
-              <p className="text-sm font-medium text-zinc-100">
-                {uploading ? "Uploading batch..." : "Drop invoices or financial ledgers here"}
+              <p className="text-sm font-semibold tracking-tight text-[var(--gd-ink)]">
+                {uploading ? "Ingesting Document Batch..." : "Drop invoices or financial ledgers here"}
               </p>
-              <p className="mt-1 text-xs text-zinc-400">
+              <p className="mt-1 text-xs text-[var(--gd-muted)]">
                 PDF (digital or scanned up to 1,000+ pages), PNG, JPG, TIFF, XLSX, XLS, CSV
               </p>
             </div>
@@ -520,19 +541,19 @@ export default function DashboardPage() {
             {uploadResults.length > 0 && (
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="mt-4 space-y-1.5 border-t border-zinc-800 pt-3 text-xs"
+                className="mt-4 space-y-1.5 border-t border-[var(--gd-line)] pt-3 text-xs"
               >
                 {uploadResults.map((r, i) => (
                   <div
                     key={i}
-                    className={`flex items-center justify-between rounded-md px-2.5 py-1.5 ${
+                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 backdrop-blur-md ${
                       r.accepted
-                        ? "bg-emerald-500/10 text-emerald-300"
-                        : "bg-rose-500/10 text-rose-300"
+                        ? "border border-[var(--gd-teal)]/30 bg-[var(--gd-teal)]/10 text-[var(--gd-teal)]"
+                        : "border border-[var(--gd-coral)]/30 bg-[var(--gd-coral)]/10 text-[var(--gd-coral)]"
                     }`}
                   >
                     <span className="truncate font-medium">{r.filename}</span>
-                    <span className="ml-2 shrink-0">
+                    <span className="ml-2 shrink-0 font-semibold">
                       {r.accepted ? "Queued" : r.errorCode || "Rejected"}
                     </span>
                   </div>
@@ -541,34 +562,35 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="lg:col-span-7 rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6">
+          {/* Frosted Hybrid Search Panel */}
+          <div className="glass-panel lg:col-span-7 rounded-2xl p-6">
             <div className="flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Sparkles className="h-4 w-4 text-emerald-400" />
+              <h2 className="flex items-center gap-2 text-sm font-bold tracking-tight text-[var(--gd-ink)]">
+                <Sparkles className="h-4 w-4 text-[var(--gd-teal)]" />
                 Hybrid Semantic + Keyword Search (RRF)
               </h2>
               {searchMode && (
-                <span className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-[11px] font-mono text-zinc-300">
+                <span className="rounded-full border border-[var(--gd-rim)] bg-[var(--gd-raised)] px-2.5 py-0.5 font-mono text-[11px] text-[var(--gd-teal)]">
                   mode: {searchMode}
                 </span>
               )}
             </div>
 
-            <form onSubmit={handleSearch} className="mt-3 flex gap-2">
+            <form onSubmit={handleSearch} className="mt-3.5 flex gap-2">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <Search className="pointer-events-none absolute left-3.5 top-2.5 h-4 w-4 text-[var(--gd-muted)]" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search suppliers, invoice numbers, line items, or semantic concepts..."
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-xl border border-[var(--gd-line)] bg-black/40 py-2 pl-10 pr-3.5 text-sm text-[var(--gd-ink)] placeholder-[var(--gd-muted)] shadow-inner backdrop-blur-md transition-all focus:border-[var(--gd-focus)] focus:outline-none"
                 />
               </div>
               <button
                 type="submit"
                 disabled={searching}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                className="rounded-xl border border-[var(--gd-rim)] bg-[var(--gd-teal)] px-4 py-2 text-sm font-semibold text-[var(--gd-primary-ink)] shadow-[0_4px_16px_rgba(117,218,192,0.3)] transition-all hover:brightness-110 disabled:opacity-50"
               >
                 {searching ? "Searching..." : "Search"}
               </button>
@@ -583,17 +605,17 @@ export default function DashboardPage() {
                       setSelectedDocId(hit.document_id);
                       fetchDetail(hit.document_id);
                     }}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950/90 p-3 text-left transition hover:border-emerald-500/40"
+                    className="glass-card w-full rounded-xl p-3 text-left transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
                   >
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-emerald-300">
+                      <span className="font-semibold text-[var(--gd-teal)]">
                         {hit.filename} (chunk #{hit.chunk_index + 1})
                       </span>
-                      <span className="font-mono text-zinc-400">
+                      <span className="font-mono text-[var(--gd-muted)]">
                         RRF: {Number(hit.score).toFixed(4)}
                       </span>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-xs text-zinc-400">{hit.snippet}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-[var(--gd-muted)]">{hit.snippet}</p>
                   </button>
                 ))}
               </div>
@@ -601,19 +623,22 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* Ingested Documents List & Document Inspector Drawer */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-5 rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-5">
+          {/* Document Ingestion Queue */}
+          <div className="glass-panel lg:col-span-5 rounded-2xl p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-white">
+              <h2 className="text-sm font-bold tracking-tight text-[var(--gd-ink)]">
                 Ingested Documents ({totalDocs})
               </h2>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-md border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-300 focus:border-emerald-500 focus:outline-none"
+                className="rounded-xl border border-[var(--gd-line)] bg-black/40 px-3 py-1 text-xs font-medium text-[var(--gd-ink)] shadow-inner backdrop-blur-md focus:border-[var(--gd-focus)] focus:outline-none"
               >
                 <option value="">All Statuses</option>
                 <option value="COMPLETED">COMPLETED</option>
+                <option value="VERIFIED">VERIFIED</option>
                 <option value="NEEDS_REVIEW">NEEDS_REVIEW</option>
                 <option value="PROCESSING">PROCESSING</option>
                 <option value="QUEUED">QUEUED</option>
@@ -621,9 +646,9 @@ export default function DashboardPage() {
               </select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {documents.length === 0 ? (
-                <p className="py-10 text-center text-xs text-zinc-500">
+                <p className="py-10 text-center text-xs text-[var(--gd-muted)]">
                   No documents ingested yet. Upload PDFs, scans, or spreadsheets above.
                 </p>
               ) : (
@@ -638,10 +663,10 @@ export default function DashboardPage() {
                         setCorrectionBanner(null);
                         fetchDetail(doc.id);
                       }}
-                      className={`w-full rounded-lg border p-3 text-left transition ${
+                      className={`glass-card w-full rounded-xl p-3.5 text-left transition-all ${
                         active
-                          ? "border-emerald-500/60 bg-zinc-900"
-                          : "border-zinc-800/80 bg-zinc-950/70 hover:border-zinc-700"
+                          ? "border-[var(--gd-rim)] bg-[var(--gd-raised)] shadow-[0_4px_20px_rgba(255,236,212,0.12)] ring-1 ring-[var(--gd-teal)]/40"
+                          : "hover:border-[var(--gd-edge-light)] hover:bg-[var(--gd-raised)]"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -649,15 +674,15 @@ export default function DashboardPage() {
                           {isSheet ? (
                             <FileSpreadsheet className="h-4 w-4 shrink-0 text-sky-400" />
                           ) : (
-                            <FileText className="h-4 w-4 shrink-0 text-emerald-400" />
+                            <FileText className="h-4 w-4 shrink-0 text-[var(--gd-teal)]" />
                           )}
-                          <span className="truncate text-sm font-medium text-zinc-100">
+                          <span className="truncate text-sm font-semibold text-[var(--gd-ink)]">
                             {doc.filename}
                           </span>
                         </div>
                         <StatusBadge status={doc.status} />
                       </div>
-                      <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-500">
+                      <div className="mt-2.5 flex items-center justify-between text-[11px] text-[var(--gd-muted)]">
                         <span>
                           {doc.file_ext?.toUpperCase()} · {(doc.file_size_bytes / 1024).toFixed(1)} KB
                           {doc.page_count ? ` · ${doc.page_count}p` : ""}
@@ -671,44 +696,50 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-7 rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-5">
+          {/* Right Inspector & Human Verification Drawer */}
+          <div className="glass-panel lg:col-span-7 rounded-2xl p-6">
             {!selectedDocId ? (
-              <div className="flex h-full min-h-[360px] flex-col items-center justify-center text-center text-zinc-500">
-                <FileText className="mb-2 h-8 w-8 text-zinc-700" />
-                <p className="text-sm">Select a document to inspect extracted invoices, flags, and audit logs</p>
+              <div className="flex h-full min-h-[380px] flex-col items-center justify-center text-center text-[var(--gd-muted)]">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--gd-line)] bg-[var(--gd-inner)] text-[var(--gd-muted)]">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <p className="text-sm font-medium">Select a document to inspect extracted invoices, flags, and audit logs</p>
               </div>
             ) : loadingDetail && !detail ? (
               <div className="flex h-64 items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-emerald-400" />
+                <Loader2 className="h-7 w-7 animate-spin text-[var(--gd-teal)]" />
               </div>
             ) : detail ? (
-              <div className="space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-4">
+              <div className="space-y-6">
+                {/* Header with Title, Status & 1-Click Export Actions */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--gd-line)] pb-4">
                   <div>
-                    <h3 className="text-base font-semibold text-white">{detail.document.filename}</h3>
-                    <p className="font-mono text-xs text-zinc-500">{detail.document.id}</p>
+                    <h3 className="text-base font-bold tracking-tight text-[var(--gd-ink)]">
+                      {detail.document.filename}
+                    </h3>
+                    <p className="font-mono text-xs text-[var(--gd-muted)]">{detail.document.id}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={detail.document.status} />
                     <button
                       onClick={() => downloadJson(detail)}
                       title="Download Clean Corrected JSON"
-                      className="flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-700 hover:text-white"
+                      className="glass-card flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
                     >
-                      <Download className="h-3 w-3 text-emerald-400" />
+                      <Download className="h-3.5 w-3.5 text-[var(--gd-teal)]" />
                       Export JSON
                     </button>
                     <button
                       onClick={() => exportPrintableInvoice(detail)}
                       title="Print or Save as PDF"
-                      className="flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-700 hover:text-white"
+                      className="glass-card flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
                     >
-                      <Printer className="h-3 w-3 text-sky-400" />
+                      <Printer className="h-3.5 w-3.5 text-sky-400" />
                       Print / PDF
                     </button>
                     <button
                       onClick={() => triggerReprocess(detail.document.id)}
-                      className="rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-700"
+                      className="glass-card rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-muted)] transition-all hover:border-[var(--gd-rim)] hover:text-[var(--gd-ink)]"
                     >
                       Reprocess
                     </button>
@@ -716,48 +747,52 @@ export default function DashboardPage() {
                 </div>
 
                 {detail.document.error_message && (
-                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-200">
-                    <span className="font-semibold">{detail.document.error_code}: </span>
+                  <div className="rounded-xl border border-[var(--gd-coral)]/30 bg-[var(--gd-coral)]/10 p-3.5 text-xs text-[var(--gd-coral)] backdrop-blur-md">
+                    <span className="font-bold">{detail.document.error_code}: </span>
                     {detail.document.error_message}
                   </div>
                 )}
 
                 {correctionBanner && (
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-200">
+                  <div className="rounded-xl border border-[var(--gd-teal)]/30 bg-[var(--gd-teal)]/10 p-3.5 text-xs text-[var(--gd-teal)] backdrop-blur-md">
                     {correctionBanner}
                   </div>
                 )}
 
+                {/* Validation & Grounding Flags */}
                 {detail.validation_flags.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+                  <div className="space-y-2.5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--gd-ochre)]">
                       Validation & Grounding Flags ({detail.validation_flags.length})
                     </h4>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {detail.validation_flags.map((flag) => (
                         <div
                           key={flag.id}
-                          className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-xs"
+                          className="glass-card rounded-xl border border-[var(--gd-ochre)]/25 bg-[var(--gd-ochre)]/5 px-3.5 py-2.5 text-xs"
                         >
-                          <div className="flex items-center justify-between font-medium text-amber-300">
+                          <div className="flex items-center justify-between font-semibold text-[var(--gd-ochre)]">
                             <span>
                               {flag.rule_code} {flag.field_name ? `(${flag.field_name})` : ""}
                             </span>
-                            <span className="text-[10px] uppercase">{flag.severity}</span>
+                            <span className="rounded-full border border-[var(--gd-ochre)]/30 bg-[var(--gd-ochre)]/10 px-2 py-0.5 text-[10px] uppercase">
+                              {flag.severity}
+                            </span>
                           </div>
-                          <p className="mt-0.5 text-zinc-300">{flag.message}</p>
+                          <p className="mt-1 text-[var(--gd-muted)]">{flag.message}</p>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                {/* Extracted Invoices with Inline Correction & PDF */}
+                <div className="space-y-3.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--gd-muted)]">
                     Extracted Invoices ({detail.invoices.length})
                   </h4>
                   {detail.invoices.length === 0 ? (
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-[var(--gd-muted)]">
                       No structured invoice records (spreadsheet ledgers are stored as cross-verification rows).
                     </p>
                   ) : (
@@ -766,48 +801,48 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={inv.id}
-                          className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-xs"
+                          className="glass-card rounded-xl p-4 text-xs"
                         >
-                          <div className="mb-3 flex items-center justify-between">
+                          <div className="mb-3.5 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-white">
+                              <span className="text-sm font-bold text-[var(--gd-ink)]">
                                 {inv.invoice_number || "Unnumbered Invoice"}
                               </span>
                               {inv.human_verified && (
-                                <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                                <span className="rounded-full border border-[var(--gd-teal)]/30 bg-[var(--gd-teal)]/15 px-2.5 py-0.5 text-[10px] font-semibold text-[var(--gd-teal)]">
                                   Human Verified
                                 </span>
                               )}
                             </div>
                             {!isEditing ? (
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => exportPrintableInvoice(detail, inv)}
                                   title="Print or Save as PDF"
-                                  className="flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 hover:border-sky-500 hover:text-white"
+                                  className="glass-card flex items-center gap-1 rounded-lg px-2.5 py-1 text-[var(--gd-muted)] transition-all hover:border-sky-400/50 hover:text-white"
                                 >
                                   <Printer className="h-3 w-3 text-sky-400" />
                                   PDF
                                 </button>
                                 <button
                                   onClick={() => startEditing(inv)}
-                                  className="rounded border border-zinc-700 px-2.5 py-1 text-zinc-300 hover:border-emerald-500 hover:text-white"
+                                  className="glass-card rounded-lg px-2.5 py-1 font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-teal)] hover:text-[var(--gd-teal)]"
                                 >
                                   Correct Fields
                                 </button>
                               </div>
                             ) : (
-                              <div className="flex gap-1.5">
+                              <div className="flex gap-2">
                                 <button
                                   onClick={() => submitCorrection(detail.document.id, inv.id)}
                                   disabled={savingCorrection}
-                                  className="rounded bg-emerald-600 px-2.5 py-1 font-medium text-white hover:bg-emerald-500"
+                                  className="rounded-lg border border-[var(--gd-rim)] bg-[var(--gd-teal)] px-3 py-1 font-bold text-[var(--gd-primary-ink)] shadow-[0_2px_10px_rgba(117,218,192,0.3)] hover:brightness-110"
                                 >
                                   {savingCorrection ? "Saving..." : "Save & Revalidate"}
                                 </button>
                                 <button
                                   onClick={() => setEditingInvoiceId(null)}
-                                  className="rounded border border-zinc-700 px-2 py-1 text-zinc-400"
+                                  className="glass-card rounded-lg px-2.5 py-1 text-[var(--gd-muted)] hover:text-white"
                                 >
                                   Cancel
                                 </button>
@@ -816,7 +851,7 @@ export default function DashboardPage() {
                           </div>
 
                           {isEditing ? (
-                            <div className="grid grid-cols-2 gap-2.5">
+                            <div className="grid grid-cols-2 gap-3">
                               {[
                                 ["invoice_number", "Invoice Number"],
                                 ["invoice_date", "Invoice Date (YYYY-MM-DD)"],
@@ -828,37 +863,37 @@ export default function DashboardPage() {
                                 ["currency", "Currency"],
                               ].map(([key, label]) => (
                                 <label key={key} className="block">
-                                  <span className="text-[11px] text-zinc-400">{label}</span>
+                                  <span className="text-[11px] font-medium text-[var(--gd-muted)]">{label}</span>
                                   <input
                                     type="text"
                                     value={editForm[key] ?? ""}
                                     onChange={(e) =>
                                       setEditForm((prev) => ({ ...prev, [key]: e.target.value }))
                                     }
-                                    className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                                    className="mt-1 w-full rounded-xl border border-[var(--gd-line)] bg-black/50 px-2.5 py-1.5 text-xs text-white shadow-inner focus:border-[var(--gd-focus)] focus:outline-none"
                                   />
                                 </label>
                               ))}
                             </div>
                           ) : (
-                            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+                            <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-4">
                               <div>
-                                <dt className="text-zinc-500">Supplier</dt>
-                                <dd className="font-medium text-zinc-200">{inv.supplier_name || "—"}</dd>
+                                <dt className="text-[11px] text-[var(--gd-muted)]">Supplier</dt>
+                                <dd className="font-semibold text-[var(--gd-ink)]">{inv.supplier_name || "—"}</dd>
                               </div>
                               <div>
-                                <dt className="text-zinc-500">Customer</dt>
-                                <dd className="font-medium text-zinc-200">{inv.customer_name || "—"}</dd>
+                                <dt className="text-[11px] text-[var(--gd-muted)]">Customer</dt>
+                                <dd className="font-semibold text-[var(--gd-ink)]">{inv.customer_name || "—"}</dd>
                               </div>
                               <div>
-                                <dt className="text-zinc-500">Date</dt>
-                                <dd className="font-medium text-zinc-200">
+                                <dt className="text-[11px] text-[var(--gd-muted)]">Date</dt>
+                                <dd className="font-semibold text-[var(--gd-ink)]">
                                   {inv.invoice_date ? String(inv.invoice_date).slice(0, 10) : "—"}
                                 </dd>
                               </div>
                               <div>
-                                <dt className="text-zinc-500">Total</dt>
-                                <dd className="font-semibold text-emerald-300">
+                                <dt className="text-[11px] text-[var(--gd-muted)]">Total</dt>
+                                <dd className="font-bold text-[var(--gd-teal)]">
                                   {inv.total != null
                                     ? `${inv.currency || ""} ${Number(inv.total).toFixed(2)}`
                                     : "—"}
@@ -872,23 +907,24 @@ export default function DashboardPage() {
                   )}
                 </div>
 
+                {/* Cross-Verification Links */}
                 {detail.cross_verification_links.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400">
+                  <div className="space-y-2.5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-sky-400">
                       Cross-Verification Links ({detail.cross_verification_links.length})
                     </h4>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {detail.cross_verification_links.map((link) => (
                         <div
                           key={link.id}
-                          className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs"
+                          className="glass-card flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs"
                         >
-                          <span className="text-zinc-300">
-                            Matched against <strong className="text-white">{link.target_type}</strong>
+                          <span className="text-[var(--gd-muted)]">
+                            Matched against <strong className="text-[var(--gd-ink)]">{link.target_type}</strong>
                           </span>
                           <span
-                            className={`font-mono font-medium ${
-                              link.match_status === "MATCHED" ? "text-emerald-400" : "text-amber-400"
+                            className={`font-mono font-bold ${
+                              link.match_status === "MATCHED" ? "text-[var(--gd-teal)]" : "text-[var(--gd-ochre)]"
                             }`}
                           >
                             {link.match_status}
@@ -899,23 +935,24 @@ export default function DashboardPage() {
                   </div>
                 )}
 
+                {/* Chronological Audit Trail */}
                 {detail.audit_logs.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                      <History className="h-3.5 w-3.5" />
+                  <div className="space-y-2.5">
+                    <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--gd-muted)]">
+                      <History className="h-3.5 w-3.5 text-[var(--gd-muted)]" />
                       Audit Trail ({detail.audit_logs.length})
                     </h4>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {detail.audit_logs.map((log) => (
                         <div
                           key={log.id}
-                          className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs"
+                          className="glass-card rounded-xl px-3.5 py-2.5 text-xs"
                         >
-                          <div className="flex items-center justify-between text-zinc-400">
-                            <span className="font-mono text-zinc-200">{log.action}</span>
+                          <div className="flex items-center justify-between text-[var(--gd-muted)]">
+                            <span className="font-mono font-semibold text-[var(--gd-ink)]">{log.action}</span>
                             <span>{new Date(log.created_at).toLocaleString()}</span>
                           </div>
-                          <pre className="mt-1 overflow-x-auto text-[11px] text-zinc-400">
+                          <pre className="mt-1.5 overflow-x-auto rounded-lg bg-black/40 p-2 font-mono text-[11px] text-[var(--gd-muted)]">
                             {JSON.stringify(log.diff)}
                           </pre>
                         </div>
