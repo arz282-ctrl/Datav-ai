@@ -12,6 +12,7 @@ from bullmq import Worker, Job
 from app.contracts import (
     QUEUE_INGEST,
     QUEUE_REVALIDATE,
+    QUEUE_PREFIX,
     IngestJobPayload,
     RevalidateJobPayload,
 )
