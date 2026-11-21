@@ -33,6 +33,7 @@ from app.db import (
 from app.parsers.pdf_parser import iter_pdf_pages
 from app.parsers.image_parser import parse_image
 from app.parsers.spreadsheet_parser import parse_spreadsheet
+from app.segmenter import segment_pages
 from app.extractor.gemini_extractor import get_extractor
 from app.extractor.grounding import ground
 from app.extractor.embeddings import embed_texts
