@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Sparkles,
 } from "lucide-react";
+import { Button } from "@/components/ui/saa-s-template";
 
 const FEATURES = [
   {
@@ -98,24 +99,26 @@ export function ProductSection() {
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[var(--color-n3-accent)]/10 blur-[130px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* --- Top Section Heading & Pill --- */}
+        {/* --- Top Section Heading & Pill (SaaS Template Style) --- */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-900/90 border border-stone-700/60 shadow-inner mb-6"
+            className="mb-8 inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 rounded-full border border-gray-700 bg-gray-800/50 backdrop-blur-sm"
           >
-            <span className="w-2 h-2 rounded-full bg-[var(--color-n3-accent)]" />
-            <span className="text-xs font-medium text-stone-300">
-              Grounded extraction · no invented values
+            <span className="w-2 h-2 rounded-full bg-[var(--color-n3-accent,#ff7a2f)] animate-pulse" />
+            <span className="text-xs text-gray-300">
+              Grounded extraction · 100% deterministic math validation
             </span>
             <a
               href="#features"
-              className="text-xs font-semibold text-[var(--color-n3-accent)] hover:underline ml-1"
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-all active:scale-95 whitespace-nowrap ml-1"
+              aria-label="Read more about features"
             >
-              Read more &rarr;
+              Read more
+              <ArrowRight className="w-3 h-3" />
             </a>
           </motion.div>
 
@@ -124,7 +127,14 @@ export function ProductSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-b from-white via-stone-200 to-stone-400 bg-clip-text text-transparent leading-tight mb-6"
+            className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight leading-tight mb-6"
+            style={{
+              background: "linear-gradient(to bottom, #ffffff, #ffffff, rgba(255, 255, 255, 0.6))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              letterSpacing: "-0.04em",
+            }}
           >
             Every invoice, checked before it reaches your books
           </motion.h2>
@@ -134,7 +144,7 @@ export function ProductSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="text-base sm:text-lg text-stone-400 leading-relaxed max-w-2xl mx-auto mb-8"
+            className="text-base sm:text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto mb-10"
           >
             Upload anything. DataVai extracts the fields, verifies the maths, and only asks you about what looks wrong.
           </motion.p>
@@ -144,25 +154,52 @@ export function ProductSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="flex items-center justify-center gap-4 relative z-10"
           >
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[var(--color-n3-accent)] to-orange-600 hover:from-orange-500 hover:to-orange-600 shadow-lg shadow-orange-950/40 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-n3-accent)]"
-            >
-              <span>Open the dashboard</span>
-              <ArrowRight className="w-4 h-4" />
+            <Link href="/dashboard">
+              <Button
+                type="button"
+                variant="gradient"
+                size="lg"
+                className="rounded-lg flex items-center justify-center gap-2 shadow-2xl cursor-pointer"
+                aria-label="Open the dashboard"
+              >
+                <span>Open the dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </Link>
           </motion.div>
         </div>
 
-        {/* --- Large Dashboard Preview Card with Glass Aesthetic --- */}
+        {/* --- Large Dashboard Preview Card with SaaS Layered Aura --- */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 30 }}
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative rounded-2xl border border-stone-800/80 bg-stone-900/60 p-2 sm:p-4 shadow-2xl backdrop-blur-xl mb-28 max-w-5xl mx-auto group"
+          className="relative mb-28 max-w-5xl mx-auto group"
         >
+          {/* Ambient visual aura from SaaS template */}
+          <div
+            className="absolute left-1/2 w-[95%] pointer-events-none z-0"
+            style={{
+              top: "-22%",
+              transform: "translateX(-50%)",
+            }}
+            aria-hidden="true"
+          >
+            <img
+              src="https://cdn.21st.dev/assets/mirror/ab/abe6d8090cc14780b846eee062024e4e03274c99d38188554239cd312a7180fa.png"
+              alt=""
+              className="w-full h-auto opacity-70"
+              loading="eager"
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = "none";
+              }}
+            />
+          </div>
+
+          <div className="relative z-10 rounded-2xl border border-stone-800/80 bg-stone-900/60 p-2 sm:p-4 shadow-2xl backdrop-blur-xl">
           {/* Card Topbar Mock */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-stone-800/70 mb-3 text-xs text-stone-400">
             <div className="flex items-center gap-2">
@@ -239,7 +276,8 @@ export function ProductSection() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
         {/* --- Features Grid (id="features") --- */}
         <div id="features" className="mb-28 pt-8">
