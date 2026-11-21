@@ -789,7 +789,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-mono text-teal-400 font-bold">
-                      Score: {(hit.score * 100).toFixed(1)}%
+                      Score: {(Number(hit.score || 0) * 100).toFixed(1)}%
                     </span>
                   </div>
                 </div>
@@ -879,7 +879,21 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center justify-between text-[11px] text-stone-400">
                         <span>{(Number(doc.file_size_bytes || 0) / 1024).toFixed(1)} KB</span>
-                        <span>{formatDate(doc.created_at)}</span>
+                        <div className="flex items-center gap-2">
+                          {(doc.status === "PENDING" || doc.status === "QUEUED") && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                triggerReprocess(doc.id);
+                              }}
+                              className="px-2 py-0.5 rounded bg-[var(--color-n3-accent)] hover:bg-orange-600 text-white text-[10px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Sparkles className="w-2.5 h-2.5" />
+                              <span>Process</span>
+                            </button>
+                          )}
+                          <span>{formatDate(doc.created_at)}</span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -923,14 +937,27 @@ export default function DashboardPage() {
                     <button
                       onClick={() => triggerReprocess(selectedDetail.document.id)}
                       disabled={processingIds.has(selectedDetail.document.id)}
-                      className="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-200 border border-stone-700 flex items-center gap-1.5 cursor-pointer"
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors ${
+                        selectedDetail.document.status === "PENDING" || selectedDetail.document.status === "QUEUED"
+                          ? "bg-[var(--color-n3-accent)] hover:bg-orange-600 text-white shadow-sm"
+                          : "bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700"
+                      }`}
                     >
                       {processingIds.has(selectedDetail.document.id) ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--color-n3-accent)]" />
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                          <span>Processing...</span>
+                        </>
                       ) : (
-                        <RefreshCw className="w-3.5 h-3.5 text-[var(--color-n3-accent)]" />
+                        <>
+                          <Sparkles className="w-3.5 h-3.5 text-[var(--color-n3-accent)]" />
+                          <span>
+                            {selectedDetail.document.status === "PENDING" || selectedDetail.document.status === "QUEUED"
+                              ? "Start Processing"
+                              : "Run Re-scan"}
+                          </span>
+                        </>
                       )}
-                      <span>Run Re-scan</span>
                     </button>
 
                     <button
