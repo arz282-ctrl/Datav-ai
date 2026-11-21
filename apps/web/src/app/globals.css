@@ -40,6 +40,7 @@
 }
 
 :root {
+  --font-onest: 'Onest', 'Manrope Variable', Manrope, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --color-n3-page: #f8f7f3;
   --color-n3-ink: #171717;
   --color-n3-grey: #74716c;

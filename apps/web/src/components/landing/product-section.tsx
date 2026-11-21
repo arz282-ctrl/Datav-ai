@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/saa-s-template";
 import { InteractiveDashboardCard } from "@/components/landing/interactive-dashboard-card";
+import { PlannedConnectorsFlow } from "@/components/landing/planned-connectors-flow";
 
 const FEATURES = [
   {
@@ -79,15 +80,6 @@ const STEPS = [
     description:
       "Export validated JSON, print formatted summaries, or search millions of lines using hybrid natural-language queries.",
   },
-];
-
-const CONNECTORS = [
-  { name: "Gmail & Outlook", type: "Inbound Email", desc: "Auto-extract attached bills" },
-  { name: "Google Drive", type: "Cloud Storage", desc: "Sync invoice folders" },
-  { name: "Slack", type: "Alerting", desc: "Notify on math mismatches" },
-  { name: "Notion", type: "Knowledgebase", desc: "Export records to databases" },
-  { name: "Google Sheets", type: "Spreadsheets", desc: "Append verified line rows" },
-  { name: "QuickBooks & Xero", type: "Accounting ERP", desc: "Push audited bills directly" },
 ];
 
 export function ProductSection() {
@@ -299,35 +291,9 @@ export function ProductSection() {
           </div>
         </div>
 
-        {/* --- Connectors Section (id="connectors") --- */}
+        {/* --- Connectors Section (id="connectors") with Animated Flow Board --- */}
         <div id="connectors" className="pt-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-              Planned Connectors
-            </h2>
-            <p className="text-sm sm:text-base text-stone-400">
-              Integrations under active development to stream documents in and verified data out.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {CONNECTORS.map((c) => (
-              <div
-                key={c.name}
-                className="p-4 rounded-xl bg-stone-900/60 border border-stone-800 flex flex-col items-start justify-between min-h-[110px]"
-              >
-                <div className="w-full flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-950/80 text-amber-400 border border-amber-800/60">
-                    Roadmap
-                  </span>
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-white mb-0.5">{c.name}</h4>
-                  <p className="text-[11px] text-stone-400">{c.type}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <PlannedConnectorsFlow />
         </div>
       </div>
     </section>
