@@ -105,17 +105,17 @@ interface DocumentDetail {
 function StatusBadge({ status }: { status: string }) {
   const s = (status || "").toUpperCase();
   const styles: Record<string, string> = {
-    COMPLETED: "border-[var(--gd-teal)]/40 bg-[var(--gd-teal)]/15 text-[var(--gd-teal)] shadow-[0_0_12px_rgba(117,218,192,0.15)]",
-    VERIFIED: "border-[var(--gd-teal)]/40 bg-[var(--gd-teal)]/15 text-[var(--gd-teal)] shadow-[0_0_12px_rgba(117,218,192,0.15)]",
-    NEEDS_REVIEW: "border-[var(--gd-ochre)]/40 bg-[var(--gd-ochre)]/15 text-[var(--gd-ochre)] shadow-[0_0_12px_rgba(241,190,88,0.15)]",
-    PROCESSING: "border-sky-400/40 bg-sky-500/15 text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.15)]",
-    QUEUED: "border-[var(--gd-line)] bg-[var(--gd-card)] text-[var(--gd-muted)]",
-    FAILED: "border-[var(--gd-coral)]/40 bg-[var(--gd-coral)]/15 text-[var(--gd-coral)] shadow-[0_0_12px_rgba(255,145,119,0.15)]",
+    COMPLETED: "border-[var(--gd-teal)]/50 bg-[var(--gd-teal)]/18 text-[var(--gd-teal)] shadow-[0_0_14px_rgba(45,212,191,0.25),inset_0_1px_0_rgba(45,212,191,0.2)]",
+    VERIFIED:  "border-[var(--gd-teal)]/50 bg-[var(--gd-teal)]/18 text-[var(--gd-teal)] shadow-[0_0_14px_rgba(45,212,191,0.25),inset_0_1px_0_rgba(45,212,191,0.2)]",
+    NEEDS_REVIEW: "border-[var(--gd-ochre)]/50 bg-[var(--gd-ochre)]/18 text-[var(--gd-ochre)] shadow-[0_0_14px_rgba(251,191,36,0.2),inset_0_1px_0_rgba(251,191,36,0.15)]",
+    PROCESSING: "border-sky-400/50 bg-sky-500/18 text-sky-300 shadow-[0_0_14px_rgba(56,189,248,0.2),inset_0_1px_0_rgba(56,189,248,0.15)] badge-processing",
+    QUEUED: "border-white/10 bg-white/5 text-[var(--gd-muted)] shadow-inner",
+    FAILED: "border-[var(--gd-coral)]/50 bg-[var(--gd-coral)]/18 text-[var(--gd-coral)] shadow-[0_0_14px_rgba(251,113,133,0.2),inset_0_1px_0_rgba(251,113,133,0.15)]",
   };
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold backdrop-blur-md transition-all ${
-        styles[s] || "border-[var(--gd-line)] bg-[var(--gd-card)] text-[var(--gd-muted)]"
+        styles[s] || "border-white/10 bg-white/5 text-[var(--gd-muted)]"
       }`}
     >
       {(s === "COMPLETED" || s === "VERIFIED") && <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -457,7 +457,7 @@ export default function DashboardPage() {
       <header className="sticky top-4 z-30 mx-auto max-w-7xl px-4 sm:px-6">
         <div className="glass-pill flex items-center justify-between rounded-2xl px-5 py-3.5 transition-all">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--gd-rim)] bg-[var(--gd-gloss)] text-[var(--gd-teal)] shadow-[0_0_16px_rgba(117,218,192,0.25)]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--gd-rim)] bg-gradient-to-br from-[var(--gd-teal)]/20 to-transparent text-[var(--gd-teal)] shadow-[0_0_20px_rgba(45,212,191,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] glow-teal">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
@@ -465,7 +465,7 @@ export default function DashboardPage() {
                 <h1 className="text-base font-bold tracking-tight text-[var(--gd-ink)]">
                   Data v AI
                 </h1>
-                <span className="rounded-full border border-[var(--gd-rim)] bg-[var(--gd-raised)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--gd-teal)]">
+                <span className="rounded-full border border-[var(--gd-teal)]/40 bg-[var(--gd-teal)]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--gd-teal)] shadow-[0_0_10px_rgba(45,212,191,0.2)]">
                   Production
                 </span>
               </div>
@@ -478,7 +478,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={fetchDocuments}
-              className="glass-card flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
+              className="glass-card-interactive flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold text-[var(--gd-ink)]"
             >
               <RefreshCw className={`h-3.5 w-3.5 text-[var(--gd-teal)] ${loadingDocs ? "animate-spin" : ""}`} />
               Refresh
@@ -488,9 +488,9 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content Dashboard */}
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-7xl space-y-5 px-4 py-6 sm:px-6">
         {/* Upload Dropzone & Hybrid Search Row */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           {/* Frosted Multi-Format Dropzone */}
           <div
             onDragOver={(e) => {
@@ -504,10 +504,10 @@ export default function DashboardPage() {
               if (e.dataTransfer.files) handleFilesUpload(e.dataTransfer.files);
             }}
             onClick={() => fileInputRef.current?.click()}
-            className={`glass-panel lg:col-span-5 cursor-pointer rounded-2xl p-6 transition-all duration-200 ${
+            className={`glass-panel lg:col-span-5 cursor-pointer rounded-2xl p-6 transition-all duration-300 ${
               dragActive
-                ? "border-[var(--gd-teal)] bg-[var(--gd-teal)]/10 shadow-[0_0_30px_rgba(117,218,192,0.2)]"
-                : "hover:border-[var(--gd-edge-light)] hover:bg-[var(--gd-raised)]"
+                ? "border-[var(--gd-teal)] bg-[var(--gd-teal)]/10 shadow-[0_0_40px_rgba(45,212,191,0.25),inset_0_0_30px_rgba(45,212,191,0.06)]"
+                : "hover:border-[var(--gd-edge-light)] hover:shadow-[0_20px_56px_rgba(0,0,0,0.7),0_0_0_1px_rgba(45,212,191,0.06)]"
             }`}
           >
             <input
@@ -519,7 +519,11 @@ export default function DashboardPage() {
               onChange={(e) => e.target.files && handleFilesUpload(e.target.files)}
             />
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="mb-3.5 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--gd-rim)] bg-[var(--gd-gloss)] text-[var(--gd-teal)] shadow-[0_0_20px_rgba(117,218,192,0.2)]">
+              <div className={`mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl border text-[var(--gd-teal)] transition-all duration-300 ${
+                dragActive
+                  ? "border-[var(--gd-teal)]/60 bg-[var(--gd-teal)]/20 shadow-[0_0_30px_rgba(45,212,191,0.4)]"
+                  : "border-[var(--gd-rim)] bg-gradient-to-br from-[var(--gd-teal)]/15 to-transparent shadow-[0_0_20px_rgba(45,212,191,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]"
+              }`}>
                 {uploading ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
@@ -542,10 +546,10 @@ export default function DashboardPage() {
                 {uploadResults.map((r, i) => (
                   <div
                     key={i}
-                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 backdrop-blur-md ${
+                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 backdrop-blur-md card-enter ${
                       r.accepted
-                        ? "border border-[var(--gd-teal)]/30 bg-[var(--gd-teal)]/10 text-[var(--gd-teal)]"
-                        : "border border-[var(--gd-coral)]/30 bg-[var(--gd-coral)]/10 text-[var(--gd-coral)]"
+                        ? "border border-[var(--gd-teal)]/35 bg-[var(--gd-teal)]/12 text-[var(--gd-teal)] shadow-[0_0_12px_rgba(45,212,191,0.1)]"
+                        : "border border-[var(--gd-coral)]/35 bg-[var(--gd-coral)]/12 text-[var(--gd-coral)] shadow-[0_0_12px_rgba(251,113,133,0.1)]"
                     }`}
                   >
                     <span className="truncate font-medium">{r.filename}</span>
@@ -562,11 +566,13 @@ export default function DashboardPage() {
           <div className="glass-panel lg:col-span-7 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-sm font-bold tracking-tight text-[var(--gd-ink)]">
-                <Sparkles className="h-4 w-4 text-[var(--gd-teal)]" />
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--gd-teal)]/15 text-[var(--gd-teal)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </span>
                 Hybrid Semantic + Keyword Search (RRF)
               </h2>
               {searchMode && (
-                <span className="rounded-full border border-[var(--gd-rim)] bg-[var(--gd-raised)] px-2.5 py-0.5 font-mono text-[11px] text-[var(--gd-teal)]">
+                <span className="rounded-full border border-[var(--gd-teal)]/40 bg-[var(--gd-teal)]/10 px-2.5 py-0.5 font-mono text-[11px] text-[var(--gd-teal)] shadow-[0_0_10px_rgba(45,212,191,0.15)]">
                   mode: {searchMode}
                 </span>
               )}
@@ -580,13 +586,13 @@ export default function DashboardPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search suppliers, invoice numbers, line items, or semantic concepts..."
-                  className="w-full rounded-xl border border-[var(--gd-line)] bg-black/40 py-2 pl-10 pr-3.5 text-sm text-[var(--gd-ink)] placeholder-[var(--gd-muted)] shadow-inner backdrop-blur-md transition-all focus:border-[var(--gd-focus)] focus:outline-none"
+                  className="w-full rounded-xl border border-[var(--gd-line)] bg-black/50 py-2 pl-10 pr-3.5 text-sm text-[var(--gd-ink)] placeholder-[var(--gd-muted)] shadow-inner backdrop-blur-md transition-all focus:border-[var(--gd-teal)]/60 focus:shadow-[0_0_0_3px_rgba(45,212,191,0.08)] focus:outline-none"
                 />
               </div>
               <button
                 type="submit"
                 disabled={searching}
-                className="rounded-xl border border-[var(--gd-rim)] bg-[var(--gd-teal)] px-4 py-2 text-sm font-semibold text-[var(--gd-primary-ink)] shadow-[0_4px_16px_rgba(117,218,192,0.3)] transition-all hover:brightness-110 disabled:opacity-50"
+                className="rounded-xl border border-[var(--gd-teal)]/50 bg-[var(--gd-teal)] px-4 py-2 text-sm font-semibold text-[var(--gd-primary-ink)] shadow-[0_4px_20px_rgba(45,212,191,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] transition-all hover:brightness-110 hover:shadow-[0_6px_28px_rgba(45,212,191,0.45)] active:scale-95 disabled:opacity-50"
               >
                 {searching ? "Searching..." : "Search"}
               </button>
@@ -601,7 +607,7 @@ export default function DashboardPage() {
                       setSelectedDocId(hit.document_id);
                       fetchDetail(hit.document_id);
                     }}
-                    className="glass-card w-full rounded-xl p-3 text-left transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
+                    className="glass-card-interactive w-full rounded-xl p-3 text-left"
                   >
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-[var(--gd-teal)]">
@@ -620,17 +626,21 @@ export default function DashboardPage() {
         </section>
 
         {/* Ingested Documents List & Document Inspector Drawer */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           {/* Document Ingestion Queue */}
           <div className="glass-panel lg:col-span-5 rounded-2xl p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-bold tracking-tight text-[var(--gd-ink)]">
-                Ingested Documents ({totalDocs})
+              <h2 className="flex items-center gap-2 text-sm font-bold tracking-tight text-[var(--gd-ink)]">
+                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-sky-500/15 text-sky-400">
+                  <FileText className="h-3 w-3" />
+                </span>
+                Ingested Documents
+                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-[var(--gd-muted)]">{totalDocs}</span>
               </h2>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-xl border border-[var(--gd-line)] bg-black/40 px-3 py-1 text-xs font-medium text-[var(--gd-ink)] shadow-inner backdrop-blur-md focus:border-[var(--gd-focus)] focus:outline-none"
+                className="rounded-xl border border-[var(--gd-line)] bg-black/50 px-3 py-1 text-xs font-medium text-[var(--gd-ink)] shadow-inner backdrop-blur-md focus:border-[var(--gd-teal)]/50 focus:outline-none transition-colors"
               >
                 <option value="">All Statuses</option>
                 <option value="COMPLETED">COMPLETED</option>
@@ -642,11 +652,14 @@ export default function DashboardPage() {
               </select>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {documents.length === 0 ? (
-                <p className="py-10 text-center text-xs text-[var(--gd-muted)]">
-                  No documents ingested yet. Upload PDFs, scans, or spreadsheets above.
-                </p>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--gd-line)] bg-[var(--gd-inner)] text-[var(--gd-muted)]">
+                    <UploadCloud className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs text-[var(--gd-muted)]">No documents ingested yet. Upload PDFs, scans, or spreadsheets above.</p>
+                </div>
               ) : (
                 documents.map((doc) => {
                   const isSheet = ["xlsx", "xls", "csv"].includes((doc.file_ext || "").toLowerCase());
@@ -659,10 +672,10 @@ export default function DashboardPage() {
                         setCorrectionBanner(null);
                         fetchDetail(doc.id);
                       }}
-                      className={`glass-card w-full rounded-xl p-3.5 text-left transition-all ${
+                      className={`glass-card-interactive w-full rounded-xl p-3.5 text-left ${
                         active
-                          ? "border-[var(--gd-rim)] bg-[var(--gd-raised)] shadow-[0_4px_20px_rgba(255,236,212,0.12)] ring-1 ring-[var(--gd-teal)]/40"
-                          : "hover:border-[var(--gd-edge-light)] hover:bg-[var(--gd-raised)]"
+                          ? "border-[var(--gd-teal)]/40 bg-[var(--gd-teal)]/6 shadow-[0_0_20px_rgba(45,212,191,0.12),inset_0_1px_0_rgba(45,212,191,0.1)] ring-1 ring-[var(--gd-teal)]/25"
+                          : ""
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -678,7 +691,7 @@ export default function DashboardPage() {
                         </div>
                         <StatusBadge status={doc.status} />
                       </div>
-                      <div className="mt-2.5 flex items-center justify-between text-[11px] text-[var(--gd-muted)]">
+                      <div className="mt-2 flex items-center justify-between text-[11px] text-[var(--gd-muted)]">
                         <span>
                           {doc.file_ext?.toUpperCase()} · {(doc.file_size_bytes / 1024).toFixed(1)} KB
                           {doc.page_count ? ` · ${doc.page_count}p` : ""}
@@ -696,17 +709,19 @@ export default function DashboardPage() {
           <div className="glass-panel lg:col-span-7 rounded-2xl p-6">
             {!selectedDocId ? (
               <div className="flex h-full min-h-[380px] flex-col items-center justify-center text-center text-[var(--gd-muted)]">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--gd-line)] bg-[var(--gd-inner)] text-[var(--gd-muted)]">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--gd-line)] bg-gradient-to-br from-white/5 to-transparent text-[var(--gd-muted)] shadow-inner">
                   <FileText className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-medium">Select a document to inspect extracted invoices, flags, and audit logs</p>
+                <p className="text-sm font-medium text-[var(--gd-muted)]">Select a document to inspect extracted invoices, flags, and audit logs</p>
+                <p className="mt-1 text-xs text-[var(--gd-muted)]/60">Click any document on the left to begin</p>
               </div>
             ) : loadingDetail && !detail ? (
-              <div className="flex h-64 items-center justify-center">
+              <div className="flex h-64 items-center justify-center gap-3">
                 <Loader2 className="h-7 w-7 animate-spin text-[var(--gd-teal)]" />
+                <span className="text-sm text-[var(--gd-muted)]">Loading document…</span>
               </div>
             ) : detail ? (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {/* Header with Title, Status & 1-Click Export Actions */}
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--gd-line)] pb-4">
                   <div>
@@ -720,7 +735,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => downloadJson(detail)}
                       title="Download Clean Corrected JSON"
-                      className="glass-card flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
+                      className="glass-card-interactive flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-ink)]"
                     >
                       <Download className="h-3.5 w-3.5 text-[var(--gd-teal)]" />
                       Export JSON
@@ -728,14 +743,14 @@ export default function DashboardPage() {
                     <button
                       onClick={() => exportPrintableInvoice(detail)}
                       title="Print or Save as PDF"
-                      className="glass-card flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-rim)] hover:bg-[var(--gd-raised)]"
+                      className="glass-card-interactive flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-ink)]"
                     >
                       <Printer className="h-3.5 w-3.5 text-sky-400" />
                       Print / PDF
                     </button>
                     <button
                       onClick={() => triggerReprocess(detail.document.id)}
-                      className="glass-card rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-muted)] transition-all hover:border-[var(--gd-rim)] hover:text-[var(--gd-ink)]"
+                      className="glass-card-interactive rounded-xl px-3 py-1.5 text-xs font-semibold text-[var(--gd-muted)] hover:text-[var(--gd-ink)]"
                     >
                       Reprocess
                     </button>
@@ -743,14 +758,14 @@ export default function DashboardPage() {
                 </div>
 
                 {detail.document.error_message && (
-                  <div className="rounded-xl border border-[var(--gd-coral)]/30 bg-[var(--gd-coral)]/10 p-3.5 text-xs text-[var(--gd-coral)] backdrop-blur-md">
+                  <div className="rounded-xl border border-[var(--gd-coral)]/35 bg-[var(--gd-coral)]/10 p-3.5 text-xs text-[var(--gd-coral)] backdrop-blur-md shadow-[0_0_16px_rgba(251,113,133,0.1)]">
                     <span className="font-bold">{detail.document.error_code}: </span>
                     {detail.document.error_message}
                   </div>
                 )}
 
                 {correctionBanner && (
-                  <div className="rounded-xl border border-[var(--gd-teal)]/30 bg-[var(--gd-teal)]/10 p-3.5 text-xs text-[var(--gd-teal)] backdrop-blur-md">
+                  <div className="rounded-xl border border-[var(--gd-teal)]/35 bg-[var(--gd-teal)]/10 p-3.5 text-xs text-[var(--gd-teal)] backdrop-blur-md shadow-[0_0_16px_rgba(45,212,191,0.1)] card-enter">
                     {correctionBanner}
                   </div>
                 )}
@@ -758,20 +773,21 @@ export default function DashboardPage() {
                 {/* Validation & Grounding Flags */}
                 {detail.validation_flags.length > 0 && (
                   <div className="space-y-2.5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--gd-ochre)]">
-                      Validation & Grounding Flags ({detail.validation_flags.length})
+                    <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--gd-ochre)]">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Validation &amp; Grounding Flags ({detail.validation_flags.length})
                     </h4>
                     <div className="space-y-2">
                       {detail.validation_flags.map((flag) => (
                         <div
                           key={flag.id}
-                          className="glass-card rounded-xl border border-[var(--gd-ochre)]/25 bg-[var(--gd-ochre)]/5 px-3.5 py-2.5 text-xs"
+                          className="glass-card rounded-xl border border-[var(--gd-ochre)]/30 bg-[var(--gd-ochre)]/6 px-3.5 py-2.5 text-xs shadow-[0_0_12px_rgba(251,191,36,0.06)]"
                         >
                           <div className="flex items-center justify-between font-semibold text-[var(--gd-ochre)]">
                             <span>
                               {flag.rule_code} {flag.field_name ? `(${flag.field_name})` : ""}
                             </span>
-                            <span className="rounded-full border border-[var(--gd-ochre)]/30 bg-[var(--gd-ochre)]/10 px-2 py-0.5 text-[10px] uppercase">
+                            <span className="rounded-full border border-[var(--gd-ochre)]/35 bg-[var(--gd-ochre)]/12 px-2 py-0.5 text-[10px] uppercase">
                               {flag.severity}
                             </span>
                           </div>
@@ -783,8 +799,9 @@ export default function DashboardPage() {
                 )}
 
                 {/* Extracted Invoices with Inline Correction & PDF */}
-                <div className="space-y-3.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--gd-muted)]">
+                <div className="space-y-3">
+                  <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--gd-muted)]">
+                    <FileText className="h-3.5 w-3.5" />
                     Extracted Invoices ({detail.invoices.length})
                   </h4>
                   {detail.invoices.length === 0 ? (
@@ -797,7 +814,7 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={inv.id}
-                          className="glass-card rounded-xl p-4 text-xs"
+                          className="glass-card rounded-xl p-4 text-xs border border-[var(--gd-line)] hover:border-[var(--gd-rim)] transition-colors"
                         >
                           <div className="mb-3.5 flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -815,14 +832,14 @@ export default function DashboardPage() {
                                 <button
                                   onClick={() => exportPrintableInvoice(detail, inv)}
                                   title="Print or Save as PDF"
-                                  className="glass-card flex items-center gap-1 rounded-lg px-2.5 py-1 text-[var(--gd-muted)] transition-all hover:border-sky-400/50 hover:text-white"
+                                  className="glass-card-interactive flex items-center gap-1 rounded-lg px-2.5 py-1 text-[var(--gd-muted)]"
                                 >
                                   <Printer className="h-3 w-3 text-sky-400" />
                                   PDF
                                 </button>
                                 <button
                                   onClick={() => startEditing(inv)}
-                                  className="glass-card rounded-lg px-2.5 py-1 font-semibold text-[var(--gd-ink)] transition-all hover:border-[var(--gd-teal)] hover:text-[var(--gd-teal)]"
+                                  className="glass-card-interactive rounded-lg px-2.5 py-1 font-semibold text-[var(--gd-ink)] hover:border-[var(--gd-teal)] hover:text-[var(--gd-teal)]"
                                 >
                                   Correct Fields
                                 </button>
@@ -906,21 +923,24 @@ export default function DashboardPage() {
                 {/* Cross-Verification Links */}
                 {detail.cross_verification_links.length > 0 && (
                   <div className="space-y-2.5">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                    <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-sky-400">
+                      <ShieldCheck className="h-3.5 w-3.5" />
                       Cross-Verification Links ({detail.cross_verification_links.length})
                     </h4>
                     <div className="space-y-2">
                       {detail.cross_verification_links.map((link) => (
                         <div
                           key={link.id}
-                          className="glass-card flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs"
+                          className="glass-card flex items-center justify-between rounded-xl border border-sky-400/15 px-3.5 py-2.5 text-xs hover:border-sky-400/30 transition-colors"
                         >
                           <span className="text-[var(--gd-muted)]">
                             Matched against <strong className="text-[var(--gd-ink)]">{link.target_type}</strong>
                           </span>
                           <span
-                            className={`font-mono font-bold ${
-                              link.match_status === "MATCHED" ? "text-[var(--gd-teal)]" : "text-[var(--gd-ochre)]"
+                            className={`font-mono font-bold rounded-full px-2 py-0.5 text-[10px] ${
+                              link.match_status === "MATCHED"
+                                ? "bg-[var(--gd-teal)]/12 text-[var(--gd-teal)] border border-[var(--gd-teal)]/30"
+                                : "bg-[var(--gd-ochre)]/12 text-[var(--gd-ochre)] border border-[var(--gd-ochre)]/30"
                             }`}
                           >
                             {link.match_status}
@@ -935,20 +955,20 @@ export default function DashboardPage() {
                 {detail.audit_logs.length > 0 && (
                   <div className="space-y-2.5">
                     <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--gd-muted)]">
-                      <History className="h-3.5 w-3.5 text-[var(--gd-muted)]" />
+                      <History className="h-3.5 w-3.5" />
                       Audit Trail ({detail.audit_logs.length})
                     </h4>
                     <div className="space-y-2">
                       {detail.audit_logs.map((log) => (
                         <div
                           key={log.id}
-                          className="glass-card rounded-xl px-3.5 py-2.5 text-xs"
+                          className="glass-card rounded-xl px-3.5 py-2.5 text-xs hover:border-[var(--gd-line)] transition-colors"
                         >
                           <div className="flex items-center justify-between text-[var(--gd-muted)]">
                             <span className="font-mono font-semibold text-[var(--gd-ink)]">{log.action}</span>
                             <span>{new Date(log.created_at).toLocaleString()}</span>
                           </div>
-                          <pre className="mt-1.5 overflow-x-auto rounded-lg bg-black/40 p-2 font-mono text-[11px] text-[var(--gd-muted)]">
+                          <pre className="mt-1.5 overflow-x-auto rounded-lg bg-black/50 p-2 font-mono text-[11px] text-[var(--gd-muted)] border border-white/5">
                             {JSON.stringify(log.diff)}
                           </pre>
                         </div>
