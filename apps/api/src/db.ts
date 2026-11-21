@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 import { config } from "./config.js";
 
 export const pgPool = new Pool({

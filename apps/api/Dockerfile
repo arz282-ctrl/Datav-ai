@@ -10,7 +10,7 @@ RUN mkdir -p /data/uploads && chown -R 10001:10001 /data/uploads
 WORKDIR /app
 
 COPY package*.json tsconfig.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 RUN npm run build && npm prune --omit=dev
