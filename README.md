@@ -77,7 +77,8 @@ docker compose up --build -d
 ```
 
 ### 4. Verify Services
-- **Web Dashboard:** `http://localhost:3000`
+- **Landing Page:** `http://localhost:3000`
+- **Web Dashboard:** `http://localhost:3000/dashboard`
 - **Express API Health:** `http://localhost:4000/health`
 - **Python Worker Health:** `http://localhost:8001/health`
 - **Postgres Database:** `localhost:5432` (`docintel_user` / `docintel_password_change_me`)
