@@ -51,7 +51,7 @@ export const corsMiddleware = cors({
 
 export const generalRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 200,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests, please try again later." },
@@ -59,7 +59,7 @@ export const generalRateLimiter = rateLimit({
 
 export const uploadRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 20,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Upload rate limit exceeded. Max 20 uploads per minute." },

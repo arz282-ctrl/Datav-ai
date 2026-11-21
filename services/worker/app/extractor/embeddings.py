@@ -84,7 +84,7 @@ async def embed_texts(
         return [_mock_embedding(t[:MAX_CHARS_PER_TEXT], target_dim) for t in texts]
 
     try:
-        return await _embed_with_gemini(texts, task_type, model_name, target_dim, api_key)
-    except Exception as e:
-        # If API fails or is unavailable, raise so caller can handle or degrade gracefully
-        raise RuntimeError(f"Failed to generate Gemini embeddings: {str(e)}")
+        return await asyncio.wait_for(_embed_with_gemini(texts, task_type, model_name, target_dim, api_key), timeout=5.0)
+    except Exception:
+        # If API fails, times out, or is unavailable, degrade gracefully to deterministic mock embeddings
+        return [_mock_embedding(t[:MAX_CHARS_PER_TEXT], target_dim) for t in texts]

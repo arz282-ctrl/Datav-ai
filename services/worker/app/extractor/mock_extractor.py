@@ -43,7 +43,12 @@ class MockExtractor:
         for pat in date_patterns:
             m = pat.search(text)
             if m:
-                raw_d = m.group(1).strip().splitlines()[0]
+                stripped_lines = m.group(1).strip().splitlines()
+                if not stripped_lines:
+                    continue
+                raw_d = stripped_lines[0].strip()
+                if not raw_d:
+                    continue
                 try:
                     dt = date_parser.parse(raw_d, fuzzy=True).date()
                     inv_date = dt.strftime("%Y-%m-%d")
@@ -69,10 +74,29 @@ class MockExtractor:
             supplier_name = supp_match.group(1).strip()
         else:
             # Check common mock vendors
-            for vendor in ["Acme Medical Supply", "Global Healthcare Ltd", "CareFirst Supplies", "HomeCare Logistics", "Apex Medical"]:
+            for vendor in [
+                "Apex Medical Supplies Inc",
+                "Apex Medical",
+                "Horizon Home Health Care",
+                "CrossCare Medical Corp",
+                "Sunrise Elderly Care Center",
+                "Acme Medical Supply",
+                "Global Healthcare Ltd",
+                "CareFirst Supplies",
+                "HomeCare Logistics",
+                "MediEquip Global",
+                "Pulse Medical",
+            ]:
                 if vendor.lower() in text.lower():
                     supplier_name = vendor
                     break
+            if not supplier_name:
+                # Top non-empty header line before invoice markers
+                lines = [l.strip() for l in text.splitlines() if l.strip()]
+                for l in lines[:3]:
+                    if not re.search(r"(?:invoice|commercial|bill|page|date|#)", l, re.IGNORECASE):
+                        supplier_name = l
+                        break
 
         customer_name: Optional[str] = None
         cust_match = re.search(r"(?:bill\s*to|to|customer|client|patient)\s*[:.\s]+([A-Za-z0-9 .,&'-]{3,40})", text, re.IGNORECASE)
@@ -84,12 +108,18 @@ class MockExtractor:
         subtotal: Optional[float] = None
         tax: Optional[float] = None
 
-        total_match = re.search(r"\b(?:grand\s*total|total\s*due|balance\s*due|total)\b\s*[:.\s]*[\$€£৳¥]?\s*([\d,]+(?:\.\d{2})?)", text, re.IGNORECASE)
-        if total_match:
-            try:
-                total = float(total_match.group(1).replace(",", ""))
-            except Exception:
-                pass
+        total_patterns = [
+            re.compile(r"\b(?:grand\s*total|total\s*amount\s*due|total\s*due|balance\s*due)\b\s*[:.\s]*[\$€£৳¥]?\s*([\d,]+(?:\.\d{2})?)", re.IGNORECASE),
+            re.compile(r"\b(?:total)\b\s*[:.\s]*[\$€£৳¥]?\s*([\d,]+(?:\.\d{2})?)", re.IGNORECASE),
+        ]
+        for pat in total_patterns:
+            total_match = pat.search(text)
+            if total_match:
+                try:
+                    total = float(total_match.group(1).replace(",", ""))
+                    break
+                except Exception:
+                    pass
 
         subtotal_match = re.search(r"\b(?:subtotal|sub-total|net\s*amount)\b\s*[:.\s]*[\$€£৳¥]?\s*([\d,]+(?:\.\d{2})?)", text, re.IGNORECASE)
         if subtotal_match:

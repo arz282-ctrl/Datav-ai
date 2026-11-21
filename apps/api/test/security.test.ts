@@ -48,4 +48,18 @@ describe("Upload Guard & Validation", () => {
 
     fs.unlinkSync(testExe);
   });
+
+  it("validateUploadedFile accepts extension-less PDF via magic bytes", async () => {
+    const tmpDir = os.tmpdir();
+    const noExtPdf = path.join(tmpDir, "namecheap_order_summary_no_ext");
+    // Write standard PDF header
+    fs.writeFileSync(noExtPdf, Buffer.from("%PDF-1.4\n%âãÏÓ\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF"));
+
+    const result = await validateUploadedFile(noExtPdf, "namecheap.com Order Summary ( Order# 201072949)");
+    expect(result.valid).toBe(true);
+    expect(result.detectedExt).toBe("pdf");
+    expect(result.mimeType).toBe("application/pdf");
+
+    fs.unlinkSync(noExtPdf);
+  });
 });

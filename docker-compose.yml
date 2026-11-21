@@ -53,7 +53,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_password_change_me}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
       - PRIMARY_LLM_MODEL=${PRIMARY_LLM_MODEL:-gemini-3.8-flash}
       - FALLBACK_LLM_MODEL=${FALLBACK_LLM_MODEL:-gemini-3.1-pro-preview}
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-gemini-embedding-001}

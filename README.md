@@ -80,7 +80,7 @@ docker compose up --build -d
 - **Web Dashboard:** `http://localhost:3000`
 - **Express API Health:** `http://localhost:4000/health`
 - **Python Worker Health:** `http://localhost:8001/health`
-- **Postgres Database:** `localhost:5432` (`docint_user` / `docint_password`)
+- **Postgres Database:** `localhost:5432` (`docintel_user` / `docintel_password_change_me`)
 - **Redis Queue:** `localhost:6379`
 
 To view container logs:
@@ -92,7 +92,7 @@ docker compose logs -f
 
 ## API Reference
 
-All requests to the Node.js API require the `X-API-Key` header (default in development: `dev_secret_key_12345`).
+All requests to the Node.js API require the `X-API-Key` header (default in development: `docintel-test-api-key-2026-secure-token`).
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
