@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InteractiveDashboardCard } from "@/components/landing/interactive-dashboard-card";
 
 // Inline Button Component
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -157,6 +158,7 @@ export interface SaaSHeroProps {
   previewImage?: string;
   glowImage?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
 // Hero Component
@@ -181,6 +183,7 @@ export const Hero = React.memo(
     previewImage = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1600&auto=format&fit=crop",
     glowImage = "https://cdn.21st.dev/assets/mirror/ab/abe6d8090cc14780b846eee062024e4e03274c99d38188554239cd312a7180fa.png",
     className = "",
+    children,
   }: SaaSHeroProps) => {
     return (
       <section
@@ -289,13 +292,8 @@ export const Hero = React.memo(
             />
           </div>
 
-          <div className="relative z-10 rounded-xl overflow-hidden shadow-2xl border border-gray-800 bg-gray-950/80">
-            <img
-              src={previewImage}
-              alt="Dashboard preview showing analytics and metrics interface"
-              className="w-full h-auto rounded-lg shadow-2xl object-cover"
-              loading="eager"
-            />
+          <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border border-stone-800 bg-stone-950/90">
+            {children || <InteractiveDashboardCard />}
           </div>
         </div>
       </section>

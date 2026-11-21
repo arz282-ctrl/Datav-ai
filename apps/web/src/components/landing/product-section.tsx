@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/saa-s-template";
+import { InteractiveDashboardCard } from "@/components/landing/interactive-dashboard-card";
 
 const FEATURES = [
   {
@@ -199,85 +200,37 @@ export function ProductSection() {
             />
           </div>
 
-          <div className="relative z-10 rounded-2xl border border-stone-800/80 bg-stone-900/60 p-2 sm:p-4 shadow-2xl backdrop-blur-xl">
-          {/* Card Topbar Mock */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-stone-800/70 mb-3 text-xs text-stone-400">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block" />
-              <span className="w-3 h-3 rounded-full bg-yellow-500/80 inline-block" />
-              <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block" />
-              <span className="ml-2 font-mono text-stone-400 text-[11px]">app.datav.ai/dashboard</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-800/50 text-[10px] font-medium">
-                Live Audit Active
-              </span>
-            </div>
-          </div>
+          <div className="relative z-10 space-y-5">
+            {/* Live Interactive Dashboard Preview Card matching real workspace */}
+            <InteractiveDashboardCard />
 
-          {/* High-res Dashboard Preview Image */}
-          <div className="relative w-full rounded-xl overflow-hidden mb-3 border border-stone-800">
-            <Image
-              src="/landing/dashboard-preview.webp"
-              alt="DataVai Financial Document Audit Dashboard Preview"
-              width={1600}
-              height={900}
-              className="w-full h-auto object-cover"
-              priority
-            />
-          </div>
-
-          {/* Interactive Mock Dashboard View */}
-          <div className="rounded-xl bg-[#0c0c10] border border-stone-800 p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-            {/* Stat 1 */}
-            <div className="p-4 rounded-xl bg-stone-900/50 border border-stone-800/60">
-              <div className="text-xs text-stone-400 font-medium mb-1">Processed Invoices</div>
-              <div className="text-2xl font-bold text-white mb-2">20 / 20 Verified</div>
-              <div className="text-xs text-emerald-400 flex items-center gap-1">
-                <CheckCircle className="w-3.5 h-3.5" /> 100% Grounded (No Hallucination)
-              </div>
-            </div>
-
-            {/* Stat 2 */}
-            <div className="p-4 rounded-xl bg-stone-900/50 border border-stone-800/60">
-              <div className="text-xs text-stone-400 font-medium mb-1">Audit Discrepancies</div>
-              <div className="text-2xl font-bold text-[var(--color-n3-accent)] mb-2">2 Flagged</div>
-              <div className="text-xs text-stone-400">Math mismatch: $1,420.00 vs $1,400.00</div>
-            </div>
-
-            {/* Stat 3 */}
-            <div className="p-4 rounded-xl bg-stone-900/50 border border-stone-800/60">
-              <div className="text-xs text-stone-400 font-medium mb-1">Hybrid Search Engine</div>
-              <div className="text-2xl font-bold text-teal-400 mb-2">pgvector RRF</div>
-              <div className="text-xs text-stone-400">768-dim embeddings + Full-Text</div>
-            </div>
-
-            {/* Split Screen Mock Row */}
-            <div className="md:col-span-3 p-4 rounded-xl bg-stone-950/70 border border-stone-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[var(--color-n3-accent)]/20 text-[var(--color-n3-accent)] flex items-center justify-center font-bold">
-                  PDF
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-white">inv_06_scan_blur.pdf</div>
-                  <div className="text-xs text-stone-400">Tesseract OCR · Bilateral Deskew · Gemini 1.5 Flash</div>
+            {/* Interactive Stats Grid */}
+            <div className="rounded-xl bg-[#0c0c10] border border-stone-800 p-4 sm:p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+              {/* Stat 1 */}
+              <div className="p-4 rounded-xl bg-stone-900/50 border border-stone-800/60">
+                <div className="text-xs text-stone-400 font-medium mb-1">Processed Invoices</div>
+                <div className="text-2xl font-bold text-white mb-2">20 / 20 Verified</div>
+                <div className="text-xs text-emerald-400 flex items-center gap-1">
+                  <CheckCircle className="w-3.5 h-3.5" /> 100% Grounded (No Hallucination)
                 </div>
               </div>
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <span className="text-xs font-mono text-stone-300 bg-stone-800/80 px-2.5 py-1 rounded-md">
-                  Tax: $280.00 | Total: $2,280.00
-                </span>
-                <Link
-                  href="/dashboard"
-                  className="px-3.5 py-1.5 text-xs font-semibold text-white bg-stone-800 hover:bg-stone-700 rounded-lg transition-colors border border-stone-700 flex items-center gap-1"
-                >
-                  Inspect in Live Dashboard &rarr;
-                </Link>
+
+              {/* Stat 2 */}
+              <div className="p-4 rounded-xl bg-stone-900/50 border border-stone-800/60">
+                <div className="text-xs text-stone-400 font-medium mb-1">Audit Discrepancies</div>
+                <div className="text-2xl font-bold text-[var(--color-n3-accent)] mb-2">2 Flagged</div>
+                <div className="text-xs text-stone-400">Math mismatch: $1,420.00 vs $1,400.00</div>
+              </div>
+
+              {/* Stat 3 */}
+              <div className="p-4 rounded-xl bg-stone-900/50 border border-stone-800/60">
+                <div className="text-xs text-stone-400 font-medium mb-1">Hybrid Search Engine</div>
+                <div className="text-2xl font-bold text-teal-400 mb-2">pgvector RRF</div>
+                <div className="text-xs text-stone-400">768-dim embeddings + Full-Text</div>
               </div>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
         {/* --- Features Grid (id="features") --- */}
         <div id="features" className="mb-28 pt-8">
