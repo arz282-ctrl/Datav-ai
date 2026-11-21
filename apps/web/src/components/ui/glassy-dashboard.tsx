@@ -489,6 +489,7 @@ export function GlassyDashboard({
       style={{ "--gd-panel-frost": `${Math.max(0, Math.min(36, panelFrost))}px` } as CSSProperties}
     >
       <style>{dashboardStyles}</style>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="gd-background" src={backgroundImage} alt="" aria-hidden="true" fetchPriority="high" />
     </div>
   );

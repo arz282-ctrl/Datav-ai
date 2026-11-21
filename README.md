@@ -77,7 +77,8 @@ docker compose up --build -d
 ```
 
 ### 4. Verify Services
-- **Web Dashboard:** `http://localhost:3000`
+- **Landing Page:** `http://localhost:3000`
+- **Web Dashboard:** `http://localhost:3000/dashboard`
 - **Express API Health:** `http://localhost:4000/health`
 - **Python Worker Health:** `http://localhost:8001/health`
 - **Postgres Database:** `localhost:5432` (`docintel_user` / `docintel_password_change_me`)
@@ -150,8 +151,10 @@ python scripts/generate_1000p_pdf.py 1000
 
 ---
 
-## Documentation
+## Documentation & Reports
 
+- [EVALUATION_REPORT.md](EVALUATION_REPORT.md): Complete evaluation metrics, 20-document benchmark results, Task Coverage Matrix (Tasks 1–7), and 1,000-page volume evidence.
+- [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md): Comprehensive implementation summary, deliverables checklist, and technical decisions.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): Detailed component architecture, sequence diagrams, and ER schemas.
 - [docs/CONTRACTS.md](docs/CONTRACTS.md): API payloads, schemas, error codes, and BullMQ queue smoke test findings.
 - [docs/AI_DISCLOSURE.md](docs/AI_DISCLOSURE.md): Complete disclosure of prompts, models, and grounding logic.

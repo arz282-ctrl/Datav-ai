@@ -1,5 +1,6 @@
 """Vector embedding generator using gemini-embedding-001 with L2 normalization and mock support."""
 
+import asyncio
 import hashlib
 import math
 import os

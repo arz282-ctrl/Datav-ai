@@ -1,5 +1,6 @@
 """Gemini structured invoice extractor using google-genai SDK with fallback models and retry policies."""
 
+import asyncio
 import json
 import os
 from decimal import Decimal

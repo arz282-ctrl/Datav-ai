@@ -236,7 +236,7 @@ export function DynamicShaderBackground() {
       {/* Subtle micro-grain overlay for velvety texture under frosted glass */}
       <div
         aria-hidden="true"
-        className="fixed inset-0 -z-10 pointer-events-none select-none bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-900/10 via-transparent to-black/60"
+        className="fixed inset-0 -z-10 pointer-events-none select-none bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-teal-900/10 via-transparent to-black/60"
       />
     </>
   );
