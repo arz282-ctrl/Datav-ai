@@ -50,11 +50,12 @@ interface DocumentRow {
 }
 
 interface LineItemRecord {
-  id: string;
+  id?: string;
   description?: string;
   quantity?: number;
-  unit_price?: number;
-  total_price?: number;
+  unit_price?: number | string;
+  total_price?: number | string;
+  amount?: number | string;
 }
 
 interface InvoiceRecord {
@@ -63,9 +64,9 @@ interface InvoiceRecord {
   invoice_date?: string;
   supplier_name?: string;
   customer_name?: string;
-  subtotal?: number;
-  tax?: number;
-  total?: number;
+  subtotal?: number | string;
+  tax?: number | string;
+  total?: number | string;
   currency?: string;
   raw_extraction?: Record<string, unknown>;
   confidence?: number | { score?: number; model_confidence?: number; supplier_name?: unknown };
@@ -127,6 +128,38 @@ const FLAG_DESCRIPTIONS: Record<string, string> = {
   UNGROUNDED_VALUE: "A value couldn't be confirmed in the document.",
   CORRUPTED_DOCUMENT: "This file couldn't be read.",
 };
+
+function formatMoney(val: unknown): string {
+  if (val == null || val === "") return "0.00";
+  const num = typeof val === "number" ? val : parseFloat(String(val));
+  return isNaN(num) ? "0.00" : num.toFixed(2);
+}
+
+function formatPrice(val: unknown): string {
+  if (val == null || val === "") return "—";
+  const num = typeof val === "number" ? val : parseFloat(String(val));
+  return isNaN(num) ? String(val) : num.toFixed(2);
+}
+
+function formatDate(val: unknown): string {
+  if (!val) return "—";
+  try {
+    const d = new Date(String(val));
+    return isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
+  } catch {
+    return "—";
+  }
+}
+
+function formatDateTime(val: unknown): string {
+  if (!val) return "—";
+  try {
+    const d = new Date(String(val));
+    return isNaN(d.getTime()) ? "—" : d.toLocaleString();
+  } catch {
+    return "—";
+  }
+}
 
 export default function DashboardPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
@@ -846,7 +879,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center justify-between text-[11px] text-stone-400">
                         <span>{(Number(doc.file_size_bytes || 0) / 1024).toFixed(1)} KB</span>
-                        <span>{new Date(doc.created_at).toLocaleDateString()}</span>
+                        <span>{formatDate(doc.created_at)}</span>
                       </div>
                     </div>
                   );
@@ -1171,7 +1204,7 @@ export default function DashboardPage() {
                               <div>
                                 <span className="text-stone-500 block text-[10px] uppercase">Date</span>
                                 <span className="font-medium text-stone-200">
-                                  {inv.invoice_date ? String(inv.invoice_date).slice(0, 10) : "—"}
+                                  {formatDate(inv.invoice_date)}
                                 </span>
                               </div>
                               <div>
@@ -1183,19 +1216,19 @@ export default function DashboardPage() {
                               <div>
                                 <span className="text-stone-500 block text-[10px] uppercase">Subtotal</span>
                                 <span className="font-mono text-stone-200">
-                                  ${inv.subtotal != null ? inv.subtotal.toFixed(2) : "0.00"}
+                                  ${formatMoney(inv.subtotal)}
                                 </span>
                               </div>
                               <div>
                                 <span className="text-stone-500 block text-[10px] uppercase">Tax</span>
                                 <span className="font-mono text-stone-200">
-                                  ${inv.tax != null ? inv.tax.toFixed(2) : "0.00"}
+                                  ${formatMoney(inv.tax)}
                                 </span>
                               </div>
                               <div className="sm:col-span-2">
                                 <span className="text-stone-500 block text-[10px] uppercase">Total</span>
                                 <span className="font-mono text-base font-bold text-emerald-400">
-                                  ${inv.total != null ? inv.total.toFixed(2) : "0.00"}
+                                  ${formatMoney(inv.total)}
                                 </span>
                               </div>
                             </div>
@@ -1214,7 +1247,7 @@ export default function DashboardPage() {
                                     >
                                       <span>{item.description || "Item"}</span>
                                       <span className="font-mono">
-                                        ${item.total_price != null ? item.total_price.toFixed(2) : "—"}
+                                        ${formatPrice(item.total_price ?? item.amount)}
                                       </span>
                                     </div>
                                   ))}
@@ -1341,7 +1374,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <span className="text-[10px] font-mono text-stone-500 shrink-0">
-                            {new Date(log.timestamp).toLocaleString()}
+                            {formatDateTime(log.timestamp)}
                           </span>
                         </div>
                       ))}
