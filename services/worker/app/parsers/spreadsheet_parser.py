@@ -16,7 +16,8 @@ HEADER_ALIASES = {
     "invoice_number": [
         "invoice_number", "invoice_no", "inv_no", "inv_num", "invoice#", "inv#", 
         "bill_no", "bill_number", "document_no", "doc_no", "doc_number", "document_number",
-        "doc_num", "doc#", "invoice"
+        "doc_num", "doc#", "invoice", "document_reference", "document_ref", "doc_reference",
+        "doc_ref", "reference_no", "reference_number", "ref_no", "ref_num", "ref#", "reference"
     ],
     "supplier_name": [
         "supplier_name", "supplier", "vendor_name", "vendor", "payee", "seller", 

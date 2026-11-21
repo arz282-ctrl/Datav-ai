@@ -23,8 +23,8 @@ const storage = multer.diskStorage({
     cb(null, dest);
   },
   filename: (_req, file, cb) => {
-    const rawExt = path.extname(file.originalname).toLowerCase().replace(".", "");
-    const safeExt = ALLOWED_EXTENSIONS.has(rawExt) ? rawExt : "bin";
+    const rawExt = path.extname(file.originalname).toLowerCase().replace(".", "").trim();
+    const safeExt = /^[a-z0-9]{1,10}$/.test(rawExt) && ALLOWED_EXTENSIONS.has(rawExt) ? rawExt : "bin";
     const fileUuid = crypto.randomUUID();
     cb(null, `${fileUuid}.${safeExt}`);
   },
@@ -69,19 +69,71 @@ export function sniffCsv(filePath: string): boolean {
 }
 
 export async function validateUploadedFile(filePath: string, originalName: string): Promise<FileValidationResult> {
-  const ext = path.extname(originalName).toLowerCase().replace(".", "");
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
+  const rawExt = path.extname(originalName).toLowerCase().replace(".", "").trim();
+  // An extension is valid only if it consists solely of alphanumeric characters without spaces/symbols (e.g. "pdf", "xlsx", "jpg")
+  const declaredExt = /^[a-z0-9]{1,10}$/.test(rawExt) ? rawExt : "";
+
+  // If the user explicitly declared an extension that is definitively not supported (e.g. .exe, .sh)
+  if (declaredExt && !ALLOWED_EXTENSIONS.has(declaredExt)) {
     return {
       valid: false,
       mimeType: "application/octet-stream",
-      detectedExt: ext,
+      detectedExt: declaredExt,
       errorCode: "UNSUPPORTED_EXTENSION",
-      errorMessage: `Extension .${ext} is not allowed.`,
+      errorMessage: `Extension .${declaredExt} is not allowed.`,
     };
   }
 
-  // Handle CSV sniffing
-  if (ext === "csv") {
+  // Handle magic bytes with file-type
+  const detected = await fileTypeFromFile(filePath);
+  let detectedExt = detected?.ext ? (detected.ext as string) : "";
+  let mimeType = detected?.mime || "application/octet-stream";
+
+  // Check manual signatures if fileTypeFromFile didn't identify it
+  if (!detectedExt) {
+    try {
+      const fd = fs.openSync(filePath, "r");
+      const headBuf = Buffer.alloc(32);
+      const bytesRead = fs.readSync(fd, headBuf, 0, 32, 0);
+      fs.closeSync(fd);
+
+      if (bytesRead >= 4 && headBuf.toString("utf-8", 0, 4) === "%PDF") {
+        detectedExt = "pdf";
+        mimeType = "application/pdf";
+      } else if (bytesRead >= 8 && headBuf[0] === 0xd0 && headBuf[1] === 0xcf && headBuf[2] === 0x11 && headBuf[3] === 0xe0) {
+        detectedExt = "xls";
+        mimeType = "application/vnd.ms-excel";
+      } else if (sniffCsv(filePath)) {
+        detectedExt = "csv";
+        mimeType = "text/csv";
+      }
+    } catch (e) {}
+  }
+
+  // Handle CSV sniffing if detectedExt is empty or declared as csv
+  if (!detectedExt && sniffCsv(filePath)) {
+    detectedExt = "csv";
+    mimeType = "text/csv";
+  }
+
+  // If no extension was declared on the filename (e.g. "namecheap.com Order Summary ( Order# 201072949)"),
+  // infer the document type from the verified magic bytes
+  const effectiveExt = declaredExt || detectedExt;
+
+  if (!effectiveExt || !ALLOWED_EXTENSIONS.has(effectiveExt)) {
+    return {
+      valid: false,
+      mimeType: "unknown",
+      detectedExt: detectedExt || "unknown",
+      errorCode: declaredExt ? "UNSUPPORTED_EXTENSION" : "MAGIC_BYTE_MISMATCH",
+      errorMessage: declaredExt
+        ? `Extension .${declaredExt} is not allowed.`
+        : "Could not verify valid document signature.",
+    };
+  }
+
+  // Handle CSV verification
+  if (effectiveExt === "csv") {
     const isCsv = sniffCsv(filePath);
     if (!isCsv) {
       return {
@@ -99,55 +151,30 @@ export async function validateUploadedFile(filePath: string, originalName: strin
     };
   }
 
-  // Handle magic bytes with file-type
-  const detected = await fileTypeFromFile(filePath);
-  if (!detected) {
-    // Check CFB for XLS
-    const buf = Buffer.alloc(8);
-    const fd = fs.openSync(filePath, "r");
-    fs.readSync(fd, buf, 0, 8, 0);
-    fs.closeSync(fd);
-    // Compound file binary signature: D0 CF 11 E0 A1 B1 1A E1
-    if (ext === "xls" && buf[0] === 0xd0 && buf[1] === 0xcf && buf[2] === 0x11 && buf[3] === 0xe0) {
+  // Match detected extension against declared extension (if one was declared)
+  if (declaredExt) {
+    const isMatch =
+      detectedExt === declaredExt ||
+      (declaredExt === "jpg" && detectedExt === "jpeg") ||
+      (declaredExt === "jpeg" && detectedExt === "jpg") ||
+      (declaredExt === "tif" && detectedExt === "tiff") ||
+      (declaredExt === "tiff" && detectedExt === "tif") ||
+      (declaredExt === "xlsx" && (detectedExt === "zip" || detectedExt === "xlsx"));
+
+    if (!isMatch) {
       return {
-        valid: true,
-        mimeType: "application/vnd.ms-excel",
-        detectedExt: "xls",
+        valid: false,
+        mimeType,
+        detectedExt,
+        errorCode: "MAGIC_BYTE_MISMATCH",
+        errorMessage: `File signature (${detectedExt || "unknown"}) does not match declared extension (.${declaredExt}).`,
       };
     }
-
-    return {
-      valid: false,
-      mimeType: "unknown",
-      detectedExt: "unknown",
-      errorCode: "MAGIC_BYTE_MISMATCH",
-      errorMessage: "Could not verify valid file signature.",
-    };
-  }
-
-  // Match detected extension against filename extension
-  const detectedExt = detected.ext as string;
-  const isMatch =
-    detectedExt === ext ||
-    (ext === "jpg" && detectedExt === "jpeg") ||
-    (ext === "jpeg" && detectedExt === "jpg") ||
-    (ext === "tif" && detectedExt === "tiff") ||
-    (ext === "tiff" && detectedExt === "tif") ||
-    (ext === "xlsx" && (detectedExt === "zip" || detectedExt === "xlsx"));
-
-  if (!isMatch) {
-    return {
-      valid: false,
-      mimeType: detected.mime,
-      detectedExt,
-      errorCode: "MAGIC_BYTE_MISMATCH",
-      errorMessage: `File signature (${detectedExt}) does not match declared extension (.${ext}).`,
-    };
   }
 
   return {
     valid: true,
-    mimeType: detected.mime,
-    detectedExt,
+    mimeType,
+    detectedExt: effectiveExt,
   };
 }

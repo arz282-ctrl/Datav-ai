@@ -514,7 +514,7 @@ export default function DashboardPage() {
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff,.xlsx,.xls,.csv"
+              accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff,.xlsx,.xls,.csv,application/pdf,image/*,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*"
               className="hidden"
               onChange={(e) => e.target.files && handleFilesUpload(e.target.files)}
             />

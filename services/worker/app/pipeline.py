@@ -14,7 +14,8 @@ from app.contracts import (
     RuleCode,
     Severity,
     ExtractionResult,
-    InvoiceData
+    InvoiceData,
+    LineItemData
 )
 from app.db import (
     update_document_status,
@@ -239,6 +240,16 @@ async def run_revalidate(payload: RevalidateJobPayload) -> RevalidateJobResult:
     total_flags = 0
     for r in invoice_rows:
         inv_id = str(r["id"])
+        raw_items = r.get("line_items") or []
+        parsed_items = []
+        if isinstance(raw_items, list):
+            for item in raw_items:
+                if isinstance(item, dict):
+                    try:
+                        parsed_items.append(LineItemData(**item))
+                    except Exception:
+                        pass
+
         inv_data = InvoiceData(
             invoice_number=r["invoice_number"],
             invoice_date=str(r["invoice_date"]) if r["invoice_date"] else None,
@@ -248,8 +259,15 @@ async def run_revalidate(payload: RevalidateJobPayload) -> RevalidateJobResult:
             tax=float(r["tax"]) if r["tax"] is not None else None,
             total=float(r["total"]) if r["total"] is not None else None,
             currency=r["currency"],
-            line_items=[]
+            line_items=parsed_items
         )
+
+        dup_hash = compute_duplicate_hash(inv_data.supplier_name, inv_data.invoice_number, inv_data.total)
+        async with get_db_cursor() as cur:
+            await cur.execute(
+                "UPDATE extracted_invoices SET duplicate_hash = %s WHERE id = %s",
+                (dup_hash, inv_id)
+            )
 
         flags = validate_invoice(inv_data, existing_hashes)
         links, cv_flags = cross_verify(inv_data, inv_id, ledger_rows_data, other_invoices_data)

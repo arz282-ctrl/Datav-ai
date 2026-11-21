@@ -70,19 +70,19 @@ class GeminiExtractor:
         last_error = None
         used_model = self.primary_model
 
-        # Attempt with Primary Model
+        # Attempt with Primary Model (5s timeout)
         try:
-            raw_json = await self._call_model(self.primary_model, prompt_text)
+            raw_json = await asyncio.wait_for(self._call_model(self.primary_model, prompt_text), timeout=5.0)
             parsed_data = SchemaInvoice.model_validate_json(raw_json)
         except Exception as e:
             last_error = e
-            # Fall back to Fallback Model
+            # Fall back to Fallback Model (3s timeout)
             used_model = self.fallback_model
             try:
-                raw_json = await self._call_model(self.fallback_model, prompt_text)
+                raw_json = await asyncio.wait_for(self._call_model(self.fallback_model, prompt_text), timeout=3.0)
                 parsed_data = SchemaInvoice.model_validate_json(raw_json)
             except Exception as e_fallback:
-                # If both fail or rate limited, degrade to mock extractor with logged error
+                # If both fail, rate limited, or timeout, degrade to mock extractor with logged error
                 mock = MockExtractor(model_name="mock-fallback")
                 result = await mock.extract(chunk_text)
                 result.confidence["fallback_error"] = str(e_fallback)

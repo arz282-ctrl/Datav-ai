@@ -23,6 +23,7 @@ build/
 dist/
 out/
 *.tsbuildinfo
+walkthrough_output/
 
 # Storage & Runtime Data
 uploads/

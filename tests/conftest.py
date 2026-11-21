@@ -6,7 +6,7 @@ import pytest
 import httpx
 
 API_BASE_URL = os.environ.get("API_URL", "http://localhost:4000")
-API_KEY = os.environ.get("API_KEY", "dev_secret_key_12345")
+API_KEY = os.environ.get("API_KEY", "docintel-test-api-key-2026-secure-token")
 
 
 @pytest.fixture(scope="session")
@@ -47,3 +47,14 @@ def test_data_dir() -> Path:
 def client(api_url: str, api_headers: dict) -> httpx.Client:
     with httpx.Client(base_url=api_url, headers=api_headers, timeout=30.0) as client:
         yield client
+
+
+@pytest.fixture(autouse=True)
+def clean_test_data(request, is_api_running: bool, client: httpx.Client):
+    """Ensure a clean database state before each integration test runs."""
+    if "integration" in request.keywords and is_api_running:
+        try:
+            client.post("/api/documents/test-reset")
+        except Exception:
+            pass
+
