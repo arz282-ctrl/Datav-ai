@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { DynamicShaderBackground } from "@/components/ui/animated-shader-bg";
+import { DashboardShell } from "@/components/dashboard/shell";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -18,6 +18,15 @@ import {
   Sparkles,
   UploadCloud,
   XCircle,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  Edit2,
+  Check,
+  X,
+  Send,
+  Eye,
+  Filter,
 } from "lucide-react";
 
 interface UploadItemResult {
@@ -39,189 +48,200 @@ interface DocumentRow {
   updated_at: string;
 }
 
-interface SearchHit {
-  document_id: string;
-  filename: string;
-  status: string;
-  chunk_index: number;
-  snippet: string;
-  score: number;
+interface LineItemRecord {
+  id: string;
+  description?: string;
+  quantity?: number;
+  unit_price?: number;
+  total_price?: number;
 }
 
 interface InvoiceRecord {
   id: string;
-  document_id: string;
-  invoice_number: string | null;
-  invoice_date: string | null;
-  supplier_name: string | null;
-  customer_name: string | null;
-  subtotal: number | null;
-  tax: number | null;
-  total: number | null;
-  currency: string | null;
-  human_verified: boolean;
-  model_used?: string;
-  line_items?: Array<{
-    description?: string | null;
-    quantity?: number | null;
-    unit_price?: number | null;
-    amount?: number | null;
-  }>;
+  invoice_number?: string;
+  invoice_date?: string;
+  supplier_name?: string;
+  customer_name?: string;
+  subtotal?: number;
+  tax?: number;
+  total?: number;
+  currency?: string;
+  raw_extraction?: Record<string, unknown>;
+  confidence?: number;
+  line_items?: LineItemRecord[];
 }
 
-interface ValidationFlag {
+interface ValidationFlagRecord {
   id: string;
-  rule_code: string;
-  severity: string;
-  field_name: string | null;
-  message: string;
+  flag_code: string;
+  field_name?: string;
+  message?: string;
+  severity: "CRITICAL" | "WARNING" | "INFO";
+  rule_code?: string;
 }
 
-interface CrossVerifyLink {
-  id: string;
-  source_invoice_id: string;
-  target_type: string;
-  target_id: string;
-  match_status: string;
-  diff_details: Record<string, unknown>;
-}
-
-interface AuditLogEntry {
+interface AuditLogRecord {
   id: string;
   action: string;
-  diff: Record<string, unknown>;
-  created_at: string;
+  timestamp: string;
+  detail?: Record<string, unknown>;
+  actor?: string;
+}
+
+interface TextChunkRecord {
+  id: string;
+  chunk_index: number;
+  page_number?: number;
+  text_content: string;
 }
 
 interface DocumentDetail {
-  document: DocumentRow & { error_code?: string | null; error_message?: string | null };
-  chunks: Array<{ id: string; chunk_index: number; page_start: number; page_end: number; chunk_text: string }>;
+  document: DocumentRow;
   invoices: InvoiceRecord[];
-  validation_flags: ValidationFlag[];
-  cross_verification_links: CrossVerifyLink[];
-  audit_logs: AuditLogEntry[];
+  validation_flags: ValidationFlagRecord[];
+  audit_logs: AuditLogRecord[];
+  text_chunks?: TextChunkRecord[];
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const s = (status || "").toUpperCase();
-  const styles: Record<string, string> = {
-    COMPLETED: "border-(--gd-teal)/50 bg-(--gd-teal)/18 text-(--gd-teal) shadow-[0_0_14px_rgba(45,212,191,0.25),inset_0_1px_0_rgba(45,212,191,0.2)]",
-    VERIFIED:  "border-(--gd-teal)/50 bg-(--gd-teal)/18 text-(--gd-teal) shadow-[0_0_14px_rgba(45,212,191,0.25),inset_0_1px_0_rgba(45,212,191,0.2)]",
-    NEEDS_REVIEW: "border-(--gd-ochre)/50 bg-(--gd-ochre)/18 text-(--gd-ochre) shadow-[0_0_14px_rgba(251,191,36,0.2),inset_0_1px_0_rgba(251,191,36,0.15)]",
-    PROCESSING: "border-sky-400/50 bg-sky-500/18 text-sky-300 shadow-[0_0_14px_rgba(56,189,248,0.2),inset_0_1px_0_rgba(56,189,248,0.15)] badge-processing",
-    QUEUED: "border-white/10 bg-white/5 text-(--gd-muted) shadow-inner",
-    FAILED: "border-(--gd-coral)/50 bg-(--gd-coral)/18 text-(--gd-coral) shadow-[0_0_14px_rgba(251,113,133,0.2),inset_0_1px_0_rgba(251,113,133,0.15)]",
-  };
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold backdrop-blur-md transition-all ${
-        styles[s] || "border-white/10 bg-white/5 text-(--gd-muted)"
-      }`}
-    >
-      {(s === "COMPLETED" || s === "VERIFIED") && <CheckCircle2 className="h-3.5 w-3.5" />}
-      {s === "NEEDS_REVIEW" && <AlertTriangle className="h-3.5 w-3.5" />}
-      {(s === "PROCESSING" || s === "QUEUED") && <Clock className="h-3.5 w-3.5" />}
-      {s === "FAILED" && <XCircle className="h-3.5 w-3.5" />}
-      {s}
-    </span>
-  );
+interface SearchHit {
+  document_id: string;
+  filename: string;
+  headline: string;
+  score: number;
+  status?: string;
+  subtotal?: number;
+  total?: number;
+  currency?: string;
 }
+
+const FLAG_DESCRIPTIONS: Record<string, string> = {
+  MATH_MISMATCH: "The total doesn't add up.",
+  MISSING_FIELD: "A required field couldn't be found.",
+  DUPLICATE_INVOICE: "Looks like a duplicate of an invoice you already uploaded.",
+  CROSS_VERIFY_MISMATCH: "Doesn't match the matching row in your spreadsheet.",
+  UNGROUNDED_VALUE: "A value couldn't be confirmed in the document.",
+  CORRUPTED_DOCUMENT: "This file couldn't be read.",
+};
 
 export default function DashboardPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
-  const [totalDocs, setTotalDocs] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [loadingDocs, setLoadingDocs] = useState(false);
-
-  const [uploading, setUploading] = useState(false);
-  const [uploadResults, setUploadResults] = useState<UploadItemResult[]>([]);
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchMode, setSearchMode] = useState<string | null>(null);
-  const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
-  const [searching, setSearching] = useState(false);
-
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<DocumentDetail | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState<DocumentDetail | null>(null);
+  const [loadingDocs, setLoadingDocs] = useState<boolean>(true);
+  const [loadingDetail, setLoadingDetail] = useState<boolean>(false);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadResults, setUploadResults] = useState<UploadItemResult[] | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searching, setSearching] = useState<boolean>(false);
+  const [searchHits, setSearchHits] = useState<SearchHit[]>([]);
+  const [searchMode, setSearchMode] = useState<string | null>(null);
+
+  // Inspector tabs
+  const [activeTab, setActiveTab] = useState<"invoices" | "flags" | "chunks" | "audit">("invoices");
+
+  // Inline correction state
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Record<string, string>>({});
-  const [savingCorrection, setSavingCorrection] = useState(false);
+  const [editForm, setEditForm] = useState({
+    invoice_number: "",
+    invoice_date: "",
+    supplier_name: "",
+    customer_name: "",
+    subtotal: "",
+    tax: "",
+    total: "",
+    currency: "",
+  });
+  const [savingCorrection, setSavingCorrection] = useState<boolean>(false);
   const [correctionBanner, setCorrectionBanner] = useState<string | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch document list
   const fetchDocuments = useCallback(async () => {
-    setLoadingDocs(true);
     try {
-      const params = new URLSearchParams({ page: "1", limit: "30" });
-      if (statusFilter) params.set("status", statusFilter);
-      const res = await fetch(`/api/proxy/documents?${params.toString()}`, { cache: "no-store" });
+      const res = await fetch("/api/proxy/documents", { cache: "no-store" });
       if (res.ok) {
         const json = await res.json();
-        setDocuments(json.data || []);
-        setTotalDocs(json.total || 0);
+        const docs: DocumentRow[] = json.documents || json;
+        if (Array.isArray(docs)) {
+          setDocuments(docs);
+        }
       }
+    } catch (e) {
+      console.error("Failed to fetch documents:", e);
     } finally {
       setLoadingDocs(false);
     }
-  }, [statusFilter]);
+  }, []);
 
+  // Fetch single document detail
   const fetchDetail = useCallback(async (docId: string) => {
     setLoadingDetail(true);
     try {
-      const res = await fetch(`/api/proxy/documents/${docId}`, { cache: "no-store" });
+      const res = await fetch(`/api/proxy/documents/${docId}/status`, { cache: "no-store" });
       if (res.ok) {
         const json = await res.json();
-        setDetail(json);
+        setSelectedDetail(json);
       }
+    } catch (e) {
+      console.error("Failed to fetch detail:", e);
     } finally {
       setLoadingDetail(false);
     }
   }, []);
 
+  // Polling effect for pending documents
   useEffect(() => {
     fetchDocuments();
-  }, [fetchDocuments]);
+    const interval = setInterval(() => {
+      fetchDocuments();
+      if (selectedDocId) {
+        fetchDetail(selectedDocId);
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [fetchDocuments, fetchDetail, selectedDocId]);
 
   useEffect(() => {
-    const hasActive = documents.some((d) => d.status === "QUEUED" || d.status === "PROCESSING");
-    if (!hasActive) return;
-    const timer = setInterval(() => {
-      fetchDocuments();
-      if (selectedDocId) fetchDetail(selectedDocId);
-    }, 2500);
-    return () => clearInterval(timer);
-  }, [documents, fetchDocuments, selectedDocId, fetchDetail]);
+    if (selectedDocId) {
+      fetchDetail(selectedDocId);
+    } else {
+      setSelectedDetail(null);
+    }
+  }, [selectedDocId, fetchDetail]);
 
+  // Upload handler
   const handleFilesUpload = async (fileList: FileList | File[]) => {
-    const files = Array.from(fileList);
-    if (files.length === 0) return;
+    if (!fileList || fileList.length === 0) return;
     setUploading(true);
-    setUploadResults([]);
+    setUploadResults(null);
+
+    const formData = new FormData();
+    Array.from(fileList).forEach((f) => formData.append("files", f));
+
     try {
-      const formData = new FormData();
-      files.forEach((f) => formData.append("files", f));
-      const res = await fetch("/api/proxy/documents/upload", {
+      const res = await fetch("/api/proxy/documents", {
         method: "POST",
         body: formData,
       });
       const json = await res.json();
-      if (Array.isArray(json.results)) {
+      if (res.ok && json.results) {
         setUploadResults(json.results);
-        const firstAccepted = json.results.find((r: UploadItemResult) => r.accepted && r.documentId);
-        if (firstAccepted?.documentId) {
-          setSelectedDocId(firstAccepted.documentId);
-          fetchDetail(firstAccepted.documentId);
-        }
+        await fetchDocuments();
+      } else {
+        alert(json.error || "Upload failed");
       }
-      await fetchDocuments();
+    } catch (err: unknown) {
+      alert(`Upload error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setUploading(false);
     }
   };
 
+  // Search handler
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
@@ -232,7 +252,6 @@ export default function DashboardPage() {
     setSearching(true);
     try {
       const params = new URLSearchParams({ q: searchQuery.trim() });
-      if (statusFilter) params.set("status", statusFilter);
       const res = await fetch(`/api/proxy/documents/search?${params.toString()}`, {
         cache: "no-store",
       });
@@ -246,6 +265,7 @@ export default function DashboardPage() {
     }
   };
 
+  // Correction handling
   const startEditing = (inv: InvoiceRecord) => {
     setEditingInvoiceId(inv.id);
     setCorrectionBanner(null);
@@ -315,672 +335,738 @@ export default function DashboardPage() {
       validation_flags: docDetail.validation_flags,
       audit_logs: docDetail.audit_logs,
     };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+    const dataStr =
+      "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
     const a = document.createElement("a");
     a.setAttribute("href", dataStr);
-    a.setAttribute("download", `${safeName}-corrected.json`);
+    a.setAttribute("download", `${safeName}_audit_export.json`);
     document.body.appendChild(a);
     a.click();
     a.remove();
   };
 
-  const exportPrintableInvoice = (docDetail: DocumentDetail, inv?: InvoiceRecord) => {
-    const targetInvoice = inv || docDetail.invoices[0];
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+  // Filtered documents
+  const filteredDocuments = documents.filter((doc) => {
+    if (activeFilter === "NEEDS_REVIEW") {
+      return doc.status === "NEEDS_REVIEW" || doc.status === "FLAGGED";
+    }
+    if (activeFilter === "READY") {
+      return doc.status === "READY";
+    }
+    if (activeFilter === "FAILED") {
+      return doc.status === "FAILED";
+    }
+    return true;
+  });
 
-    const itemsRows = targetInvoice?.line_items && targetInvoice.line_items.length > 0
-      ? targetInvoice.line_items.map((it) => `
-        <tr>
-          <td>${it.description || "Line Item"}</td>
-          <td style="text-align: right;">${it.quantity ?? 1}</td>
-          <td style="text-align: right;">${it.unit_price != null ? Number(it.unit_price).toFixed(2) : "—"}</td>
-          <td style="text-align: right; font-weight: 500;">${it.amount != null ? Number(it.amount).toFixed(2) : "—"}</td>
-        </tr>
-      `).join("")
-      : `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No detailed line items listed</td></tr>`;
-
-    const auditTrailHtml = docDetail.audit_logs && docDetail.audit_logs.length > 0
-      ? `
-        <div style="margin-top: 30px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-          <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #475569; margin-bottom: 8px;">Audit & Verification Trail</div>
-          ${docDetail.audit_logs.map(log => `
-            <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">
-              • <strong>${log.action}</strong> at ${new Date(log.created_at).toLocaleString()}
-            </div>
-          `).join("")}
-        </div>
-      `
-      : "";
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>Invoice - ${targetInvoice?.invoice_number || docDetail.document.filename}</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #0f172a; max-width: 800px; margin: 0 auto; background: #fff; }
-            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 30px; }
-            .title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: #0f172a; }
-            .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-            .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; margin-bottom: 6px; }
-            .section-val { font-size: 15px; font-weight: 600; color: #0f172a; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            th { text-align: left; padding: 10px 12px; background: #f8fafc; font-size: 11px; text-transform: uppercase; color: #475569; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
-            td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
-            .amounts { margin-left: auto; width: 300px; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; }
-            .amount-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; color: #334155; }
-            .total-row { border-top: 2px solid #0f172a; margin-top: 8px; padding-top: 10px; font-weight: 800; font-size: 16px; color: #047857; }
-            .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
-            @media print {
-              body { padding: 0; }
-              @page { margin: 1.5cm; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div>
-              <div class="title">INVOICE</div>
-              <div style="font-size: 13px; color: #64748b; margin-top: 4px;"># ${targetInvoice?.invoice_number || "Unnumbered Invoice"}</div>
-            </div>
-            <div style="text-align: right;">
-              <span class="badge">${targetInvoice?.human_verified ? "Human Verified" : docDetail.document.status}</span>
-              <div style="font-size: 12px; color: #64748b; margin-top: 8px;">Date: ${targetInvoice?.invoice_date ? String(targetInvoice.invoice_date).slice(0, 10) : "—"}</div>
-            </div>
-          </div>
-
-          <div class="grid">
-            <div>
-              <div class="section-title">Supplier / Vendor</div>
-              <div class="section-val">${targetInvoice?.supplier_name || "—"}</div>
-            </div>
-            <div>
-              <div class="section-title">Customer / Bill To</div>
-              <div class="section-val">${targetInvoice?.customer_name || "—"}</div>
-            </div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Item Description</th>
-                <th style="text-align: right;">Qty</th>
-                <th style="text-align: right;">Unit Price</th>
-                <th style="text-align: right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsRows}
-            </tbody>
-          </table>
-
-          <div class="amounts">
-            <div class="amount-row">
-              <span>Subtotal:</span>
-              <span>${targetInvoice?.currency || "USD"} ${Number(targetInvoice?.subtotal || 0).toFixed(2)}</span>
-            </div>
-            <div class="amount-row">
-              <span>Tax / VAT:</span>
-              <span>${targetInvoice?.currency || "USD"} ${Number(targetInvoice?.tax || 0).toFixed(2)}</span>
-            </div>
-            <div class="amount-row total-row">
-              <span>Grand Total:</span>
-              <span>${targetInvoice?.currency || "USD"} ${Number(targetInvoice?.total || 0).toFixed(2)}</span>
-            </div>
-          </div>
-
-          ${auditTrailHtml}
-
-          <div class="footer">
-            Generated via Data v AI Platform • Grounded & Verified Extraction • Doc ID: ${docDetail.document.id}
-          </div>
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
-        </body>
-      </html>
-    `;
-
-    printWindow.document.write(html);
-    printWindow.document.close();
-  };
+  const processedCount = documents.filter((d) => d.status === "READY").length;
+  const needsReviewCount = documents.filter(
+    (d) => d.status === "NEEDS_REVIEW" || d.status === "FLAGGED"
+  ).length;
+  const failedCount = documents.filter((d) => d.status === "FAILED").length;
 
   return (
-    <div className="relative min-h-screen text-(--gd-ink) selection:bg-(--gd-teal)/30 selection:text-white">
-      {/* Dynamic Animated Black Shader Background */}
-      <DynamicShaderBackground />
+    <DashboardShell
+      documentsCount={documents.length}
+      needsReviewCount={needsReviewCount}
+      activeFilter={activeFilter}
+      onSelectFilter={(f) => {
+        setActiveFilter(f);
+        if (f === "SEARCH") {
+          const el = document.getElementById("search-input");
+          el?.focus();
+        }
+      }}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+    >
+      <div className="space-y-8">
+        {/* --- 1. Top Greeting & Hybrid Search Bar --- */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              Document Audit Workspace
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-400 mt-1">
+              Deterministic multi-format parsing, Gemini extraction, math validation, and cross-verification.
+            </p>
+          </div>
 
-      {/* Floating Top Header Bar */}
-      <header className="sticky top-4 z-30 mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="glass-pill flex items-center justify-between rounded-2xl px-5 py-3.5 transition-all">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-(--gd-rim) bg-linear-to-br from-(--gd-teal)/20 to-transparent text-(--gd-teal) shadow-[0_0_20px_rgba(45,212,191,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] glow-teal">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold tracking-tight text-(--gd-ink)">
-                  Data v AI
-                </h1>
-                <span className="rounded-full border border-(--gd-teal)/40 bg-(--gd-teal)/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-(--gd-teal) shadow-[0_0_10px_rgba(45,212,191,0.2)]">
-                  Production
+          {/* Search bar */}
+          <form onSubmit={handleSearch} className="relative w-full lg:w-96">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+            <input
+              id="search-input"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search supplier, item, tax, total (pgvector RRF)..."
+              className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-stone-900/80 border border-stone-800 text-xs sm:text-sm text-white placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-n3-accent)]/80 focus:border-transparent transition-all"
+            />
+            <button
+              type="submit"
+              disabled={searching}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 rounded-lg bg-[var(--color-n3-accent)] text-white text-xs font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50"
+            >
+              {searching ? "..." : "Search"}
+            </button>
+          </form>
+        </div>
+
+        {/* --- 2. Upload Dropzone --- */}
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files) handleFilesUpload(e.dataTransfer.files);
+          }}
+          className="relative rounded-2xl border-2 border-dashed border-stone-800 hover:border-stone-700 bg-stone-950/40 hover:bg-stone-900/30 p-8 text-center transition-all duration-200 cursor-pointer group"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={(e) => {
+              if (e.target.files) handleFilesUpload(e.target.files);
+            }}
+            multiple
+            accept=".pdf,.png,.jpg,.jpeg,.tiff,.tif,.xlsx,.xls,.csv"
+            className="hidden"
+          />
+          <div className="w-12 h-12 rounded-2xl bg-stone-900/80 text-[var(--color-n3-accent)] flex items-center justify-center mx-auto mb-3 border border-stone-800 group-hover:scale-105 transition-transform">
+            <UploadCloud className="w-6 h-6" />
+          </div>
+          <h2 className="text-base font-semibold text-white mb-1">
+            Drop invoices here or click to browse
+          </h2>
+          <p className="text-xs text-stone-400 max-w-md mx-auto mb-3">
+            Supported formats: PDF (digital & scan), PNG, JPG, TIFF, XLSX, XLS, and CSV up to 50MB.
+          </p>
+          <button
+            type="button"
+            className="px-4 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-white border border-stone-700 transition-colors"
+          >
+            {uploading ? "Ingesting & Analyzing..." : "Choose files"}
+          </button>
+        </div>
+
+        {/* Upload feedback */}
+        {uploadResults && (
+          <div className="p-4 rounded-xl bg-stone-900/90 border border-stone-800 text-xs space-y-1.5">
+            <div className="font-semibold text-white mb-2">Ingestion Batch Summary:</div>
+            {uploadResults.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between text-stone-300">
+                <span className="truncate max-w-md">{item.filename}</span>
+                <span
+                  className={
+                    item.accepted ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"
+                  }
+                >
+                  {item.accepted ? "Queued for Processing" : item.errorMessage || "Rejected"}
                 </span>
               </div>
-              <p className="text-xs text-(--gd-muted)">
-                Multi-Format OCR · Grounded Extraction · Ledger Cross-Verification · Hybrid RRF Search
-              </p>
-            </div>
+            ))}
           </div>
+        )}
 
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={fetchDocuments}
-              className="glass-card-interactive flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold text-(--gd-ink)"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 text-(--gd-teal) ${loadingDocs ? "animate-spin" : ""}`} />
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Dashboard */}
-      <main className="mx-auto max-w-7xl space-y-5 px-4 py-6 sm:px-6">
-        {/* Upload Dropzone & Hybrid Search Row */}
-        <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-          {/* Frosted Multi-Format Dropzone */}
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={() => setDragActive(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragActive(false);
-              if (e.dataTransfer.files) handleFilesUpload(e.dataTransfer.files);
-            }}
-            onClick={() => fileInputRef.current?.click()}
-            className={`glass-panel lg:col-span-5 cursor-pointer rounded-2xl p-6 transition-all duration-300 ${
-              dragActive
-                ? "border-(--gd-teal) bg-(--gd-teal)/10 shadow-[0_0_40px_rgba(45,212,191,0.25),inset_0_0_30px_rgba(45,212,191,0.06)]"
-                : "hover:border-(--gd-edge-light) hover:shadow-[0_20px_56px_rgba(0,0,0,0.7),0_0_0_1px_rgba(45,212,191,0.06)]"
+        {/* --- 3. Three Stats Cards (Clickable Filters) --- */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button
+            onClick={() => setActiveFilter(activeFilter === "READY" ? null : "READY")}
+            className={`p-5 rounded-2xl border text-left transition-all ${
+              activeFilter === "READY"
+                ? "bg-emerald-950/40 border-emerald-500/50 ring-2 ring-emerald-500/30"
+                : "bg-stone-900/50 border-stone-800/80 hover:border-stone-700"
             }`}
           >
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".pdf,.png,.jpg,.jpeg,.tif,.tiff,.xlsx,.xls,.csv,application/pdf,image/*,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*"
-              className="hidden"
-              onChange={(e) => e.target.files && handleFilesUpload(e.target.files)}
-            />
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className={`mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl border text-(--gd-teal) transition-all duration-300 ${
-                dragActive
-                  ? "border-(--gd-teal)/60 bg-(--gd-teal)/20 shadow-[0_0_30px_rgba(45,212,191,0.4)]"
-                  : "border-(--gd-rim) bg-linear-to-br from-(--gd-teal)/15 to-transparent shadow-[0_0_20px_rgba(45,212,191,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]"
-              }`}>
-                {uploading ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  <UploadCloud className="h-6 w-6" />
-                )}
-              </div>
-              <p className="text-sm font-semibold tracking-tight text-(--gd-ink)">
-                {uploading ? "Ingesting Document Batch..." : "Drop invoices or financial ledgers here"}
-              </p>
-              <p className="mt-1 text-xs text-(--gd-muted)">
-                PDF (digital or scanned up to 1,000+ pages), PNG, JPG, TIFF, XLSX, XLS, CSV
-              </p>
+            <div className="flex items-center justify-between text-stone-400 text-xs mb-2">
+              <span>Processed Invoices</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
+            <div className="text-3xl font-bold text-white mb-1">{processedCount}</div>
+            <div className="text-[11px] text-emerald-400 font-medium">Math & Grounding Validated</div>
+          </button>
 
-            {uploadResults.length > 0 && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="mt-4 space-y-1.5 border-t border-(--gd-line) pt-3 text-xs"
-              >
-                {uploadResults.map((r, i) => (
-                  <div
-                    key={i}
-                    className={`flex items-center justify-between rounded-xl px-3 py-1.5 backdrop-blur-md card-enter ${
-                      r.accepted
-                        ? "border border-(--gd-teal)/35 bg-(--gd-teal)/12 text-(--gd-teal) shadow-[0_0_12px_rgba(45,212,191,0.1)]"
-                        : "border border-(--gd-coral)/35 bg-(--gd-coral)/12 text-(--gd-coral) shadow-[0_0_12px_rgba(251,113,133,0.1)]"
-                    }`}
-                  >
-                    <span className="truncate font-medium">{r.filename}</span>
-                    <span className="ml-2 shrink-0 font-semibold">
-                      {r.accepted ? "Queued" : r.errorCode || "Rejected"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Frosted Hybrid Search Panel */}
-          <div className="glass-panel lg:col-span-7 rounded-2xl p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-sm font-bold tracking-tight text-(--gd-ink)">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-(--gd-teal)/15 text-(--gd-teal) shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </span>
-                Hybrid Semantic + Keyword Search (RRF)
-              </h2>
-              {searchMode && (
-                <span className="rounded-full border border-(--gd-teal)/40 bg-(--gd-teal)/10 px-2.5 py-0.5 font-mono text-[11px] text-(--gd-teal) shadow-[0_0_10px_rgba(45,212,191,0.15)]">
-                  mode: {searchMode}
-                </span>
-              )}
+          <button
+            onClick={() => setActiveFilter(activeFilter === "NEEDS_REVIEW" ? null : "NEEDS_REVIEW")}
+            className={`p-5 rounded-2xl border text-left transition-all ${
+              activeFilter === "NEEDS_REVIEW"
+                ? "bg-amber-950/40 border-amber-500/50 ring-2 ring-amber-500/30"
+                : "bg-stone-900/50 border-stone-800/80 hover:border-stone-700"
+            }`}
+          >
+            <div className="flex items-center justify-between text-stone-400 text-xs mb-2">
+              <span>Need a Quick Look</span>
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
             </div>
+            <div className="text-3xl font-bold text-white mb-1">{needsReviewCount}</div>
+            <div className="text-[11px] text-amber-400 font-medium">Flagged for Human Review</div>
+          </button>
 
-            <form onSubmit={handleSearch} className="mt-3.5 flex gap-2">
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3.5 top-2.5 h-4 w-4 text-(--gd-muted)" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search suppliers, invoice numbers, line items, or semantic concepts..."
-                  className="w-full rounded-xl border border-(--gd-line) bg-black/50 py-2 pl-10 pr-3.5 text-sm text-(--gd-ink) placeholder-(--gd-muted) shadow-inner backdrop-blur-md transition-all focus:border-(--gd-teal)/60 focus:shadow-[0_0_0_3px_rgba(45,212,191,0.08)] focus:outline-hidden"
-                />
+          <button
+            onClick={() => setActiveFilter(activeFilter === "FAILED" ? null : "FAILED")}
+            className={`p-5 rounded-2xl border text-left transition-all ${
+              activeFilter === "FAILED"
+                ? "bg-red-950/40 border-red-500/50 ring-2 ring-red-500/30"
+                : "bg-stone-900/50 border-stone-800/80 hover:border-stone-700"
+            }`}
+          >
+            <div className="flex items-center justify-between text-stone-400 text-xs mb-2">
+              <span>Couldn&apos;t Be Read</span>
+              <XCircle className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">{failedCount}</div>
+            <div className="text-[11px] text-stone-400">Corrupted or Unparsable</div>
+          </button>
+        </div>
+
+        {/* --- Search Results Section (if active) --- */}
+        {searchHits.length > 0 && (
+          <div className="p-5 rounded-2xl bg-stone-900/80 border border-teal-800/60 text-left">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-teal-400" />
+                <h3 className="text-sm font-semibold text-white">
+                  Hybrid Search Results ({searchHits.length} hits via {searchMode || "RRF"})
+                </h3>
               </div>
               <button
-                type="submit"
-                disabled={searching}
-                className="rounded-xl border border-(--gd-teal)/50 bg-(--gd-teal) px-4 py-2 text-sm font-semibold text-(--gd-primary-ink) shadow-[0_4px_20px_rgba(45,212,191,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] transition-all hover:brightness-110 hover:shadow-[0_6px_28px_rgba(45,212,191,0.45)] active:scale-95 disabled:opacity-50"
+                onClick={() => setSearchHits([])}
+                className="text-xs text-stone-400 hover:text-white"
               >
-                {searching ? "Searching..." : "Search"}
+                Clear
               </button>
-            </form>
-
-            {searchHits.length > 0 && (
-              <div className="mt-4 max-h-48 space-y-2 overflow-y-auto pr-1">
-                {searchHits.map((hit, idx) => (
-                  <button
-                    key={`${hit.document_id}-${hit.chunk_index}-${idx}`}
-                    onClick={() => {
-                      setSelectedDocId(hit.document_id);
-                      fetchDetail(hit.document_id);
-                    }}
-                    className="glass-card-interactive w-full rounded-xl p-3 text-left"
-                  >
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-(--gd-teal)">
-                        {hit.filename} (chunk #{hit.chunk_index + 1})
-                      </span>
-                      <span className="font-mono text-(--gd-muted)">
-                        RRF: {Number(hit.score).toFixed(4)}
-                      </span>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-xs text-(--gd-muted)">{hit.snippet}</p>
-                  </button>
-                ))}
-              </div>
-            )}
+            </div>
+            <div className="space-y-2">
+              {searchHits.map((hit) => (
+                <div
+                  key={hit.document_id}
+                  onClick={() => setSelectedDocId(hit.document_id)}
+                  className="p-3 rounded-xl bg-stone-950/60 border border-stone-800 hover:border-teal-500/60 cursor-pointer transition-all flex items-center justify-between"
+                >
+                  <div>
+                    <div className="text-xs font-semibold text-white">{hit.filename}</div>
+                    <div className="text-[11px] text-stone-400 truncate max-w-lg">{hit.headline}</div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-mono text-teal-400 font-bold">
+                      Score: {(hit.score * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </section>
+        )}
 
-        {/* Ingested Documents List & Document Inspector Drawer */}
-        <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-          {/* Document Ingestion Queue */}
-          <div className="glass-panel lg:col-span-5 rounded-2xl p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-sm font-bold tracking-tight text-(--gd-ink)">
-                <span className="flex h-5 w-5 items-center justify-center rounded-md bg-sky-500/15 text-sky-400">
-                  <FileText className="h-3 w-3" />
-                </span>
-                Ingested Documents
-                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-(--gd-muted)">{totalDocs}</span>
-              </h2>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-xl border border-(--gd-line) bg-black/50 px-3 py-1 text-xs font-medium text-(--gd-ink) shadow-inner backdrop-blur-md focus:border-(--gd-teal)/50 focus:outline-hidden transition-colors"
+        {/* --- 4. Main Split Inspector & Review List --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Documents Table / Needs Review List (5 cols) */}
+          <div className="lg:col-span-5 rounded-2xl bg-stone-900/40 border border-stone-800/80 overflow-hidden">
+            <div className="p-4 border-b border-stone-800/80 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-stone-400" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-stone-300">
+                  Documents {activeFilter ? `(${activeFilter})` : `(${filteredDocuments.length})`}
+                </h3>
+              </div>
+              <button
+                onClick={fetchDocuments}
+                className="p-1 rounded text-stone-400 hover:text-white"
+                title="Refresh"
               >
-                <option value="">All Statuses</option>
-                <option value="COMPLETED">COMPLETED</option>
-                <option value="VERIFIED">VERIFIED</option>
-                <option value="NEEDS_REVIEW">NEEDS_REVIEW</option>
-                <option value="PROCESSING">PROCESSING</option>
-                <option value="QUEUED">QUEUED</option>
-                <option value="FAILED">FAILED</option>
-              </select>
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <div className="space-y-2">
-              {documents.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-(--gd-line) bg-(--gd-inner) text-(--gd-muted)">
-                    <UploadCloud className="h-5 w-5" />
-                  </div>
-                  <p className="text-xs text-(--gd-muted)">No documents ingested yet. Upload PDFs, scans, or spreadsheets above.</p>
+            <div className="divide-y divide-stone-800/60 max-h-[600px] overflow-y-auto">
+              {filteredDocuments.length === 0 ? (
+                <div className="p-8 text-center text-xs text-stone-500">
+                  No documents found matching this filter.
                 </div>
               ) : (
-                documents.map((doc) => {
-                  const isSheet = ["xlsx", "xls", "csv"].includes((doc.file_ext || "").toLowerCase());
-                  const active = selectedDocId === doc.id;
+                filteredDocuments.map((doc) => {
+                  const isSelected = selectedDocId === doc.id;
+                  const isNeedsReview = doc.status === "NEEDS_REVIEW" || doc.status === "FLAGGED";
+
                   return (
-                    <button
+                    <div
                       key={doc.id}
-                      onClick={() => {
-                        setSelectedDocId(doc.id);
-                        setCorrectionBanner(null);
-                        fetchDetail(doc.id);
-                      }}
-                      className={`glass-card-interactive w-full rounded-xl p-3.5 text-left ${
-                        active
-                          ? "border-(--gd-teal)/40 bg-(--gd-teal)/6 shadow-[0_0_20px_rgba(45,212,191,0.12),inset_0_1px_0_rgba(45,212,191,0.1)] ring-1 ring-(--gd-teal)/25"
-                          : ""
+                      onClick={() => setSelectedDocId(doc.id)}
+                      className={`p-3.5 text-left cursor-pointer transition-colors ${
+                        isSelected
+                          ? "bg-stone-800/90 border-l-2 border-[var(--color-n3-accent)]"
+                          : "hover:bg-stone-900/60"
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {isSheet ? (
-                            <FileSpreadsheet className="h-4 w-4 shrink-0 text-sky-400" />
-                          ) : (
-                            <FileText className="h-4 w-4 shrink-0 text-(--gd-teal)" />
-                          )}
-                          <span className="truncate text-sm font-semibold text-(--gd-ink)">
-                            {doc.filename}
-                          </span>
-                        </div>
-                        <StatusBadge status={doc.status} />
-                      </div>
-                      <div className="mt-2 flex items-center justify-between text-[11px] text-(--gd-muted)">
-                        <span>
-                          {doc.file_ext?.toUpperCase()} · {(doc.file_size_bytes / 1024).toFixed(1)} KB
-                          {doc.page_count ? ` · ${doc.page_count}p` : ""}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-white truncate max-w-[200px]">
+                          {doc.filename}
                         </span>
-                        <span>{new Date(doc.created_at).toLocaleTimeString()}</span>
+                        <span
+                          className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full border ${
+                            doc.status === "READY"
+                              ? "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
+                              : isNeedsReview
+                              ? "bg-amber-950/60 text-amber-300 border-amber-800/50 animate-pulse"
+                              : doc.status === "FAILED"
+                              ? "bg-red-950/60 text-red-400 border-red-800/50"
+                              : "bg-blue-950/60 text-blue-400 border-blue-800/50"
+                          }`}
+                        >
+                          {doc.status}
+                        </span>
                       </div>
-                    </button>
+                      <div className="flex items-center justify-between text-[11px] text-stone-400">
+                        <span>{(doc.file_size_bytes / 1024).toFixed(1)} KB</span>
+                        <span>{new Date(doc.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
                   );
                 })
               )}
             </div>
           </div>
 
-          {/* Right Inspector & Human Verification Drawer */}
-          <div className="glass-panel lg:col-span-7 rounded-2xl p-6">
-            {!selectedDocId ? (
-              <div className="flex h-full min-h-[380px] flex-col items-center justify-center text-center text-(--gd-muted)">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-(--gd-line) bg-linear-to-br from-white/5 to-transparent text-(--gd-muted) shadow-inner">
-                  <FileText className="h-6 w-6" />
-                </div>
-                <p className="text-sm font-medium text-(--gd-muted)">Select a document to inspect extracted invoices, flags, and audit logs</p>
-                <p className="mt-1 text-xs text-(--gd-muted)/60">Click any document on the left to begin</p>
+          {/* Document Detail & Inspector (7 cols) */}
+          <div className="lg:col-span-7 rounded-2xl bg-stone-900/40 border border-stone-800/80 p-5 text-left">
+            {!selectedDetail ? (
+              <div className="p-16 text-center text-stone-500 text-xs flex flex-col items-center">
+                <FileText className="w-10 h-10 text-stone-700 mb-3" />
+                <span>Select an invoice from the list to inspect fields, check math, or review audit flags.</span>
               </div>
-            ) : loadingDetail && !detail ? (
-              <div className="flex h-64 items-center justify-center gap-3">
-                <Loader2 className="h-7 w-7 animate-spin text-(--gd-teal)" />
-                <span className="text-sm text-(--gd-muted)">Loading document…</span>
-              </div>
-            ) : detail ? (
-              <div className="space-y-5">
-                {/* Header with Title, Status & 1-Click Export Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-(--gd-line) pb-4">
+            ) : (
+              <div>
+                {/* Header & Actions */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-stone-800/80 gap-3 mb-4">
                   <div>
-                    <h3 className="text-base font-bold tracking-tight text-(--gd-ink)">
-                      {detail.document.filename}
-                    </h3>
-                    <p className="font-mono text-xs text-(--gd-muted)">{detail.document.id}</p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={detail.document.status} />
-                    <button
-                      onClick={() => downloadJson(detail)}
-                      title="Download Clean Corrected JSON"
-                      className="glass-card-interactive flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-(--gd-ink)"
-                    >
-                      <Download className="h-3.5 w-3.5 text-(--gd-teal)" />
-                      Export JSON
-                    </button>
-                    <button
-                      onClick={() => exportPrintableInvoice(detail)}
-                      title="Print or Save as PDF"
-                      className="glass-card-interactive flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-(--gd-ink)"
-                    >
-                      <Printer className="h-3.5 w-3.5 text-sky-400" />
-                      Print / PDF
-                    </button>
-                    <button
-                      onClick={() => triggerReprocess(detail.document.id)}
-                      className="glass-card-interactive rounded-xl px-3 py-1.5 text-xs font-semibold text-(--gd-muted) hover:text-(--gd-ink)"
-                    >
-                      Reprocess
-                    </button>
-                  </div>
-                </div>
-
-                {detail.document.error_message && (
-                  <div className="rounded-xl border border-(--gd-coral)/35 bg-(--gd-coral)/10 p-3.5 text-xs text-(--gd-coral) backdrop-blur-md shadow-[0_0_16px_rgba(251,113,133,0.1)]">
-                    <span className="font-bold">{detail.document.error_code}: </span>
-                    {detail.document.error_message}
-                  </div>
-                )}
-
-                {correctionBanner && (
-                  <div className="rounded-xl border border-(--gd-teal)/35 bg-(--gd-teal)/10 p-3.5 text-xs text-(--gd-teal) backdrop-blur-md shadow-[0_0_16px_rgba(45,212,191,0.1)] card-enter">
-                    {correctionBanner}
-                  </div>
-                )}
-
-                {/* Validation & Grounding Flags */}
-                {detail.validation_flags.length > 0 && (
-                  <div className="space-y-2.5">
-                    <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-(--gd-ochre)">
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      Validation &amp; Grounding Flags ({detail.validation_flags.length})
-                    </h4>
-                    <div className="space-y-2">
-                      {detail.validation_flags.map((flag) => (
-                        <div
-                          key={flag.id}
-                          className="glass-card rounded-xl border border-(--gd-ochre)/30 bg-(--gd-ochre)/6 px-3.5 py-2.5 text-xs shadow-[0_0_12px_rgba(251,191,36,0.06)]"
-                        >
-                          <div className="flex items-center justify-between font-semibold text-(--gd-ochre)">
-                            <span>
-                              {flag.rule_code} {flag.field_name ? `(${flag.field_name})` : ""}
-                            </span>
-                            <span className="rounded-full border border-(--gd-ochre)/35 bg-(--gd-ochre)/12 px-2 py-0.5 text-[10px] uppercase">
-                              {flag.severity}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-(--gd-muted)">{flag.message}</p>
-                        </div>
-                      ))}
+                    <h2 className="text-base font-bold text-white truncate max-w-sm">
+                      {selectedDetail.document.filename}
+                    </h2>
+                    <div className="text-[11px] text-stone-400 flex items-center gap-2 mt-0.5">
+                      <span>Status: {selectedDetail.document.status}</span>
+                      <span>•</span>
+                      <span>ID: {selectedDetail.document.id.slice(0, 8)}...</span>
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => triggerReprocess(selectedDetail.document.id)}
+                      className="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-300 border border-stone-700 flex items-center gap-1.5"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Reprocess</span>
+                    </button>
+
+                    <button
+                      onClick={() => downloadJson(selectedDetail)}
+                      className="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-300 border border-stone-700 flex items-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export JSON</span>
+                    </button>
+
+                    <button
+                      onClick={() => window.print()}
+                      className="px-2.5 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-300 border border-stone-700 flex items-center gap-1.5"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Print</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Banner message */}
+                {correctionBanner && (
+                  <div className="p-3 mb-4 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs flex items-center justify-between">
+                    <span>{correctionBanner}</span>
+                    <button onClick={() => setCorrectionBanner(null)} className="text-emerald-400">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 )}
 
-                {/* Extracted Invoices with Inline Correction & PDF */}
-                <div className="space-y-3">
-                  <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-(--gd-muted)">
-                    <FileText className="h-3.5 w-3.5" />
-                    Extracted Invoices ({detail.invoices.length})
-                  </h4>
-                  {detail.invoices.length === 0 ? (
-                    <p className="text-xs text-(--gd-muted)">
-                      No structured invoice records (spreadsheet ledgers are stored as cross-verification rows).
-                    </p>
-                  ) : (
-                    detail.invoices.map((inv) => {
-                      const isEditing = editingInvoiceId === inv.id;
-                      return (
-                        <div
-                          key={inv.id}
-                          className="glass-card rounded-xl p-4 text-xs border border-(--gd-line) hover:border-(--gd-rim) transition-colors"
-                        >
-                          <div className="mb-3.5 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-(--gd-ink)">
-                                {inv.invoice_number || "Unnumbered Invoice"}
-                              </span>
-                              {inv.human_verified && (
-                                <span className="rounded-full border border-(--gd-teal)/30 bg-(--gd-teal)/15 px-2.5 py-0.5 text-[10px] font-semibold text-(--gd-teal)">
-                                  Human Verified
+                {/* Tabs */}
+                <div className="flex items-center gap-2 border-b border-stone-800/80 mb-5 pb-2 text-xs font-semibold">
+                  <button
+                    onClick={() => setActiveTab("invoices")}
+                    className={`px-3 py-1.5 rounded-lg transition-colors ${
+                      activeTab === "invoices"
+                        ? "bg-stone-800 text-white"
+                        : "text-stone-400 hover:text-white"
+                    }`}
+                  >
+                    Extracted Fields ({selectedDetail.invoices.length})
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("flags")}
+                    className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                      activeTab === "flags"
+                        ? "bg-stone-800 text-white"
+                        : "text-stone-400 hover:text-white"
+                    }`}
+                  >
+                    <span>Audit Flags</span>
+                    {selectedDetail.validation_flags.length > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 text-[10px]">
+                        {selectedDetail.validation_flags.length}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("chunks")}
+                    className={`px-3 py-1.5 rounded-lg transition-colors ${
+                      activeTab === "chunks"
+                        ? "bg-stone-800 text-white"
+                        : "text-stone-400 hover:text-white"
+                    }`}
+                  >
+                    Raw OCR / Text Chunks
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("audit")}
+                    className={`px-3 py-1.5 rounded-lg transition-colors ${
+                      activeTab === "audit"
+                        ? "bg-stone-800 text-white"
+                        : "text-stone-400 hover:text-white"
+                    }`}
+                  >
+                    Audit Log
+                  </button>
+                </div>
+
+                {/* Tab: Invoices & Inline Correction Form */}
+                {activeTab === "invoices" && (
+                  <div className="space-y-4">
+                    {selectedDetail.invoices.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-stone-500">
+                        No structured invoices extracted yet.
+                      </div>
+                    ) : (
+                      selectedDetail.invoices.map((inv) => {
+                        const isEditing = editingInvoiceId === inv.id;
+
+                        if (isEditing) {
+                          return (
+                            <form
+                              key={inv.id}
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                submitCorrection(selectedDetail.document.id, inv.id);
+                              }}
+                              className="p-4 rounded-xl bg-stone-950/80 border border-[var(--color-n3-accent)]/80 space-y-4"
+                            >
+                              <div className="flex items-center justify-between pb-2 border-b border-stone-800">
+                                <span className="text-xs font-semibold text-[var(--color-n3-accent)] flex items-center gap-1">
+                                  <Edit2 className="w-3.5 h-3.5" /> Inline Correction & Revalidation
                                 </span>
-                              )}
-                            </div>
-                            {!isEditing ? (
-                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingInvoiceId(null)}
+                                    className="p-1 rounded text-stone-400 hover:text-white text-xs"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Invoice #</label>
+                                  <input
+                                    type="text"
+                                    value={editForm.invoice_number}
+                                    onChange={(e) =>
+                                      setEditForm({ ...editForm, invoice_number: e.target.value })
+                                    }
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Date</label>
+                                  <input
+                                    type="date"
+                                    value={editForm.invoice_date}
+                                    onChange={(e) =>
+                                      setEditForm({ ...editForm, invoice_date: e.target.value })
+                                    }
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Supplier</label>
+                                  <input
+                                    type="text"
+                                    value={editForm.supplier_name}
+                                    onChange={(e) =>
+                                      setEditForm({ ...editForm, supplier_name: e.target.value })
+                                    }
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Customer</label>
+                                  <input
+                                    type="text"
+                                    value={editForm.customer_name}
+                                    onChange={(e) =>
+                                      setEditForm({ ...editForm, customer_name: e.target.value })
+                                    }
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Subtotal</label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={editForm.subtotal}
+                                    onChange={(e) =>
+                                      setEditForm({ ...editForm, subtotal: e.target.value })
+                                    }
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Tax</label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={editForm.tax}
+                                    onChange={(e) => setEditForm({ ...editForm, tax: e.target.value })}
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Total</label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={editForm.total}
+                                    onChange={(e) => setEditForm({ ...editForm, total: e.target.value })}
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-stone-400 block mb-1">Currency</label>
+                                  <input
+                                    type="text"
+                                    value={editForm.currency}
+                                    onChange={(e) =>
+                                      setEditForm({ ...editForm, currency: e.target.value })
+                                    }
+                                    className="w-full p-2 rounded bg-stone-900 border border-stone-700 text-white"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2 border-t border-stone-800">
+                                {/* Disabled Send To Select */}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[11px] text-stone-500">Send to:</span>
+                                  <select
+                                    disabled
+                                    className="text-xs bg-stone-900 border border-stone-800 rounded px-2 py-1 text-stone-500 cursor-not-allowed"
+                                  >
+                                    <option>QuickBooks (Soon)</option>
+                                    <option>Notion (Soon)</option>
+                                    <option>Google Sheets (Soon)</option>
+                                  </select>
+                                </div>
+
                                 <button
-                                  onClick={() => exportPrintableInvoice(detail, inv)}
-                                  title="Print or Save as PDF"
-                                  className="glass-card-interactive flex items-center gap-1 rounded-lg px-2.5 py-1 text-(--gd-muted)"
+                                  type="submit"
+                                  disabled={savingCorrection}
+                                  className="px-4 py-2 rounded-lg bg-[var(--color-n3-accent)] hover:bg-orange-600 text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
                                 >
-                                  <Printer className="h-3 w-3 text-sky-400" />
-                                  PDF
-                                </button>
-                                <button
-                                  onClick={() => startEditing(inv)}
-                                  className="glass-card-interactive rounded-lg px-2.5 py-1 font-semibold text-(--gd-ink) hover:border-(--gd-teal) hover:text-(--gd-teal)"
-                                >
-                                  Correct Fields
+                                  {savingCorrection ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                  <span>Save and approve</span>
                                 </button>
                               </div>
-                            ) : (
-                              <div className="flex gap-2">
+                            </form>
+                          );
+                        }
+
+                        return (
+                          <div
+                            key={inv.id}
+                            className="p-4 rounded-xl bg-stone-950/60 border border-stone-800 space-y-3"
+                          >
+                            <div className="flex items-center justify-between pb-2 border-b border-stone-800/60">
+                              <span className="text-xs font-semibold text-white">
+                                Invoice #{inv.invoice_number || "N/A"}
+                              </span>
+                              <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() => submitCorrection(detail.document.id, inv.id)}
-                                  disabled={savingCorrection}
-                                  className="rounded-lg border border-(--gd-rim) bg-(--gd-teal) px-3 py-1 font-bold text-(--gd-primary-ink) shadow-[0_2px_10px_rgba(117,218,192,0.3)] hover:brightness-110"
+                                  onClick={() => startEditing(inv)}
+                                  className="px-2.5 py-1 text-[11px] rounded bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium flex items-center gap-1 transition-colors"
                                 >
-                                  {savingCorrection ? "Saving..." : "Save & Revalidate"}
+                                  <Edit2 className="w-3 h-3" /> Edit & Fix
                                 </button>
-                                <button
-                                  onClick={() => setEditingInvoiceId(null)}
-                                  className="glass-card rounded-lg px-2.5 py-1 text-(--gd-muted) hover:text-white"
-                                >
-                                  Cancel
-                                </button>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                              <div>
+                                <span className="text-stone-500 block text-[10px] uppercase">Supplier</span>
+                                <span className="font-medium text-stone-200">
+                                  {inv.supplier_name || "—"}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-stone-500 block text-[10px] uppercase">Customer</span>
+                                <span className="font-medium text-stone-200">
+                                  {inv.customer_name || "—"}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-stone-500 block text-[10px] uppercase">Date</span>
+                                <span className="font-medium text-stone-200">
+                                  {inv.invoice_date ? String(inv.invoice_date).slice(0, 10) : "—"}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-stone-500 block text-[10px] uppercase">Currency</span>
+                                <span className="font-medium text-stone-200">
+                                  {inv.currency || "USD"}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-stone-500 block text-[10px] uppercase">Subtotal</span>
+                                <span className="font-mono text-stone-200">
+                                  ${inv.subtotal != null ? inv.subtotal.toFixed(2) : "0.00"}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-stone-500 block text-[10px] uppercase">Tax</span>
+                                <span className="font-mono text-stone-200">
+                                  ${inv.tax != null ? inv.tax.toFixed(2) : "0.00"}
+                                </span>
+                              </div>
+                              <div className="sm:col-span-2">
+                                <span className="text-stone-500 block text-[10px] uppercase">Total</span>
+                                <span className="font-mono text-base font-bold text-emerald-400">
+                                  ${inv.total != null ? inv.total.toFixed(2) : "0.00"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Line items if available */}
+                            {inv.line_items && inv.line_items.length > 0 && (
+                              <div className="pt-2 border-t border-stone-800/60">
+                                <span className="text-[10px] uppercase text-stone-500 font-semibold block mb-1">
+                                  Line Items ({inv.line_items.length})
+                                </span>
+                                <div className="space-y-1">
+                                  {inv.line_items.map((item, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex items-center justify-between text-[11px] text-stone-300 bg-stone-900/60 px-2 py-1 rounded"
+                                    >
+                                      <span>{item.description || "Item"}</span>
+                                      <span className="font-mono">
+                                        ${item.total_price != null ? item.total_price.toFixed(2) : "—"}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>
-
-                          {isEditing ? (
-                            <div className="grid grid-cols-2 gap-3">
-                              {[
-                                ["invoice_number", "Invoice Number"],
-                                ["invoice_date", "Invoice Date (YYYY-MM-DD)"],
-                                ["supplier_name", "Supplier Name"],
-                                ["customer_name", "Customer Name"],
-                                ["subtotal", "Subtotal"],
-                                ["tax", "Tax"],
-                                ["total", "Total"],
-                                ["currency", "Currency"],
-                              ].map(([key, label]) => (
-                                <label key={key} className="block">
-                                  <span className="text-[11px] font-medium text-(--gd-muted)">{label}</span>
-                                  <input
-                                    type="text"
-                                    value={editForm[key] ?? ""}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({ ...prev, [key]: e.target.value }))
-                                    }
-                                    className="mt-1 w-full rounded-xl border border-(--gd-line) bg-black/50 px-2.5 py-1.5 text-xs text-white shadow-inner focus:border-(--gd-focus) focus:outline-hidden"
-                                  />
-                                </label>
-                              ))}
-                            </div>
-                          ) : (
-                            <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-4">
-                              <div>
-                                <dt className="text-[11px] text-(--gd-muted)">Supplier</dt>
-                                <dd className="font-semibold text-(--gd-ink)">{inv.supplier_name || "—"}</dd>
-                              </div>
-                              <div>
-                                <dt className="text-[11px] text-(--gd-muted)">Customer</dt>
-                                <dd className="font-semibold text-(--gd-ink)">{inv.customer_name || "—"}</dd>
-                              </div>
-                              <div>
-                                <dt className="text-[11px] text-(--gd-muted)">Date</dt>
-                                <dd className="font-semibold text-(--gd-ink)">
-                                  {inv.invoice_date ? String(inv.invoice_date).slice(0, 10) : "—"}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt className="text-[11px] text-(--gd-muted)">Total</dt>
-                                <dd className="font-bold text-(--gd-teal)">
-                                  {inv.total != null
-                                    ? `${inv.currency || ""} ${Number(inv.total).toFixed(2)}`
-                                    : "—"}
-                                </dd>
-                              </div>
-                            </dl>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-
-                {/* Cross-Verification Links */}
-                {detail.cross_verification_links.length > 0 && (
-                  <div className="space-y-2.5">
-                    <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-sky-400">
-                      <ShieldCheck className="h-3.5 w-3.5" />
-                      Cross-Verification Links ({detail.cross_verification_links.length})
-                    </h4>
-                    <div className="space-y-2">
-                      {detail.cross_verification_links.map((link) => (
-                        <div
-                          key={link.id}
-                          className="glass-card flex items-center justify-between rounded-xl border border-sky-400/15 px-3.5 py-2.5 text-xs hover:border-sky-400/30 transition-colors"
-                        >
-                          <span className="text-(--gd-muted)">
-                            Matched against <strong className="text-(--gd-ink)">{link.target_type}</strong>
-                          </span>
-                          <span
-                            className={`font-mono font-bold rounded-full px-2 py-0.5 text-[10px] ${
-                              link.match_status === "MATCHED"
-                                ? "bg-(--gd-teal)/12 text-(--gd-teal) border border-(--gd-teal)/30"
-                                : "bg-(--gd-ochre)/12 text-(--gd-ochre) border border-(--gd-ochre)/30"
-                            }`}
-                          >
-                            {link.match_status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                        );
+                      })
+                    )}
                   </div>
                 )}
 
-                {/* Chronological Audit Trail */}
-                {detail.audit_logs.length > 0 && (
-                  <div className="space-y-2.5">
-                    <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-(--gd-muted)">
-                      <History className="h-3.5 w-3.5" />
-                      Audit Trail ({detail.audit_logs.length})
-                    </h4>
-                    <div className="space-y-2">
-                      {detail.audit_logs.map((log) => (
-                        <div
-                          key={log.id}
-                          className="glass-card rounded-xl px-3.5 py-2.5 text-xs hover:border-(--gd-line) transition-colors"
-                        >
-                          <div className="flex items-center justify-between text-(--gd-muted)">
-                            <span className="font-mono font-semibold text-(--gd-ink)">{log.action}</span>
-                            <span>{new Date(log.created_at).toLocaleString()}</span>
+                {/* Tab: Flags with Plain-Language Map */}
+                {activeTab === "flags" && (
+                  <div className="space-y-3">
+                    {selectedDetail.validation_flags.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-emerald-400 flex items-center justify-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>All arithmetic, required fields, and token grounding verified clean!</span>
+                      </div>
+                    ) : (
+                      selectedDetail.validation_flags.map((flag) => {
+                        const plainMsg =
+                          FLAG_DESCRIPTIONS[flag.flag_code] || flag.message || "Discrepancy detected";
+                        return (
+                          <div
+                            key={flag.id}
+                            className={`p-3 rounded-xl border text-xs flex items-start gap-3 ${
+                              flag.severity === "CRITICAL"
+                                ? "bg-red-950/40 border-red-800/60 text-red-200"
+                                : "bg-amber-950/40 border-amber-800/60 text-amber-200"
+                            }`}
+                          >
+                            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                              <div className="font-semibold text-white">{plainMsg}</div>
+                              <div className="flex items-center gap-2 text-[10px] text-stone-400 mt-1 font-mono">
+                                <span>Code: {flag.flag_code}</span>
+                                {flag.field_name && <span>• Field: {flag.field_name}</span>}
+                              </div>
+                            </div>
                           </div>
-                          <pre className="mt-1.5 overflow-x-auto rounded-lg bg-black/50 p-2 font-mono text-[11px] text-(--gd-muted) border border-white/5">
-                            {JSON.stringify(log.diff)}
-                          </pre>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+
+                {/* Tab: Raw OCR Chunks */}
+                {activeTab === "chunks" && (
+                  <div className="space-y-2">
+                    {!selectedDetail.text_chunks || selectedDetail.text_chunks.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-stone-500">
+                        No raw text chunks recorded for this file.
+                      </div>
+                    ) : (
+                      selectedDetail.text_chunks.map((chunk) => (
+                        <div
+                          key={chunk.id}
+                          className="p-3 rounded-xl bg-stone-950/60 border border-stone-800 text-[11px] font-mono text-stone-300 leading-relaxed whitespace-pre-wrap"
+                        >
+                          <div className="text-[10px] text-stone-500 font-sans mb-1">
+                            Chunk #{chunk.chunk_index} · Page {chunk.page_number || 1}
+                          </div>
+                          {chunk.text_content}
                         </div>
-                      ))}
-                    </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* Tab: Audit Log */}
+                {activeTab === "audit" && (
+                  <div className="space-y-2">
+                    {selectedDetail.audit_logs.map((log) => (
+                      <div
+                        key={log.id}
+                        className="p-2.5 rounded-xl bg-stone-950/50 border border-stone-800 text-xs flex items-center justify-between"
+                      >
+                        <div>
+                          <span className="font-semibold text-stone-200">{log.action}</span>
+                          <span className="text-stone-500 text-[11px] ml-2">by {log.actor || "system"}</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-stone-500">
+                          {new Date(log.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-            ) : null}
+            )}
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </div>
+    </DashboardShell>
   );
 }

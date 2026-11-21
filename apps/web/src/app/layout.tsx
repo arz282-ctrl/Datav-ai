@@ -9,6 +9,7 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://datav.ai"),
   title: "DataVai: AI Invoice & Document Intelligence (OCR, LLM Extraction, Validation)",
   description: "Turn invoices into verified data with DataVai. Upload PDFs, scans, Excel and CSV with grounded extraction, math verification, and ledger cross-verification.",
 };
