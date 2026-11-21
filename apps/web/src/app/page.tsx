@@ -435,7 +435,7 @@ export default function DashboardPage() {
           ${auditTrailHtml}
 
           <div class="footer">
-            Generated via DatavAI Platform • Grounded & Verified Extraction • Doc ID: ${docDetail.document.id}
+            Generated via Data v AI Platform • Grounded & Verified Extraction • Doc ID: ${docDetail.document.id}
           </div>
           <script>
             window.onload = function() { window.print(); }
@@ -463,7 +463,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base font-bold tracking-tight text-[var(--gd-ink)]">
-                  DatavAI Pipeline
+                  Data v AI
                 </h1>
                 <span className="rounded-full border border-[var(--gd-rim)] bg-[var(--gd-raised)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--gd-teal)]">
                   Production

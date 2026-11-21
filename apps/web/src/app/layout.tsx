@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DatavAI | Financial Document Intelligence",
+  title: "Data v AI | Financial Document Intelligence",
   description: "Multi-format OCR, grounded LLM extraction, cross-verification, and hybrid search",
 };
 
