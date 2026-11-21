@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.API_INTERNAL_URL || "http://localhost:4000";
+const API_BASE_URL = process.env.API_INTERNAL_URL || "http://127.0.0.1:4000";
 const API_KEY = process.env.API_KEY || "docintel-test-api-key-2026-secure-token";
 
 async function proxyRequest(request: NextRequest, params: { path: string[] }) {
