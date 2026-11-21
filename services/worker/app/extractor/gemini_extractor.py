@@ -123,9 +123,20 @@ class GeminiExtractor:
         )
 
 def get_extractor() -> Any:
-    """Factory creating Extractor based on LLM_PROVIDER and GEMINI_API_KEY env variables."""
+    """Factory creating Extractor based on LLM_PROVIDER env variable.
+
+    Supported providers:
+        - "mock"           → deterministic regex extractor (no API key needed)
+        - "gemini"         → Google GenAI Gemini models (needs GEMINI_API_KEY)
+        - "openai_compat"  → any OpenAI-compatible endpoint (e.g. Modal GLM)
+                             uses OPENAI_COMPAT_BASE_URL / MODAL_GLM_BASE_URL env
+    """
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+
+    if provider == "openai_compat":
+        from app.extractor.openai_compat_extractor import OpenAICompatExtractor
+        return OpenAICompatExtractor()
 
     if provider == "mock" or not api_key:
         return MockExtractor()
