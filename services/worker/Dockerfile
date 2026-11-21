@@ -4,6 +4,7 @@ FROM python:3.11-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
+    tesseract-ocr-osd \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
@@ -20,8 +21,8 @@ RUN mkdir -p /data/uploads && chown -R 10001:10001 /data/uploads
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt constraints.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
 
 COPY . .
 RUN chown -R 10001:10001 /app
