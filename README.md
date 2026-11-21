@@ -151,8 +151,10 @@ python scripts/generate_1000p_pdf.py 1000
 
 ---
 
-## Documentation
+## Documentation & Reports
 
+- [EVALUATION_REPORT.md](EVALUATION_REPORT.md): Complete evaluation metrics, 20-document benchmark results, Task Coverage Matrix (Tasks 1–7), and 1,000-page volume evidence.
+- [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md): Comprehensive implementation summary, deliverables checklist, and technical decisions.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): Detailed component architecture, sequence diagrams, and ER schemas.
 - [docs/CONTRACTS.md](docs/CONTRACTS.md): API payloads, schemas, error codes, and BullMQ queue smoke test findings.
 - [docs/AI_DISCLOSURE.md](docs/AI_DISCLOSURE.md): Complete disclosure of prompts, models, and grounding logic.
