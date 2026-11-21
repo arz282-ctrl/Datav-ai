@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import GlassyDashboard from "@/components/ui/glassy-dashboard";
 
-const settings = { workspaceName: "DocIntel AI", panelFrost: 14 };
+const settings = { workspaceName: "DatavAI", panelFrost: 14 };
 
 function useWorkspaceTheme() {
   const [dark, setDark] = useState(true);

@@ -476,7 +476,7 @@ export const dashboardStyles = `
 export function GlassyDashboard({
   backgroundImage = studioPhoto,
   backgroundCredit = { label: "Photo by GoodLifeConstruction", href: "https://unsplash.com/photos/e0oJLc5FYsg" },
-  workspaceName = "DocIntel AI",
+  workspaceName = "DatavAI",
   panelFrost = 16,
   initialTheme = "dark",
 }: GlassyDashboardProps = {}) {
