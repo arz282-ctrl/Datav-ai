@@ -5,10 +5,12 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Download,
   FileSpreadsheet,
   FileText,
   History,
   Loader2,
+  Printer,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -298,6 +300,152 @@ export default function DashboardPage() {
     await fetchDetail(docId);
   };
 
+  const downloadJson = (docDetail: DocumentDetail) => {
+    const safeName = (docDetail.document.filename || "document").replace(/\.[^/.]+$/, "");
+    const exportPayload = {
+      exported_at: new Date().toISOString(),
+      document: {
+        id: docDetail.document.id,
+        filename: docDetail.document.filename,
+        status: docDetail.document.status,
+      },
+      invoices: docDetail.invoices,
+      validation_flags: docDetail.validation_flags,
+      audit_logs: docDetail.audit_logs,
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+    const a = document.createElement("a");
+    a.setAttribute("href", dataStr);
+    a.setAttribute("download", `${safeName}-corrected.json`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const exportPrintableInvoice = (docDetail: DocumentDetail, inv?: InvoiceRecord) => {
+    const targetInvoice = inv || docDetail.invoices[0];
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const itemsRows = targetInvoice?.line_items && targetInvoice.line_items.length > 0
+      ? targetInvoice.line_items.map((it) => `
+        <tr>
+          <td>${it.description || "Line Item"}</td>
+          <td style="text-align: right;">${it.quantity ?? 1}</td>
+          <td style="text-align: right;">${it.unit_price != null ? Number(it.unit_price).toFixed(2) : "—"}</td>
+          <td style="text-align: right; font-weight: 500;">${it.amount != null ? Number(it.amount).toFixed(2) : "—"}</td>
+        </tr>
+      `).join("")
+      : `<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No detailed line items listed</td></tr>`;
+
+    const auditTrailHtml = docDetail.audit_logs && docDetail.audit_logs.length > 0
+      ? `
+        <div style="margin-top: 30px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+          <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #475569; margin-bottom: 8px;">Audit & Verification Trail</div>
+          ${docDetail.audit_logs.map(log => `
+            <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">
+              • <strong>${log.action}</strong> at ${new Date(log.created_at).toLocaleString()}
+            </div>
+          `).join("")}
+        </div>
+      `
+      : "";
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Invoice - ${targetInvoice?.invoice_number || docDetail.document.filename}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #0f172a; max-width: 800px; margin: 0 auto; background: #fff; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 30px; }
+            .title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: #0f172a; }
+            .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+            .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; font-weight: 600; margin-bottom: 6px; }
+            .section-val { font-size: 15px; font-weight: 600; color: #0f172a; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { text-align: left; padding: 10px 12px; background: #f8fafc; font-size: 11px; text-transform: uppercase; color: #475569; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
+            td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+            .amounts { margin-left: auto; width: 300px; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; }
+            .amount-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; color: #334155; }
+            .total-row { border-top: 2px solid #0f172a; margin-top: 8px; padding-top: 10px; font-weight: 800; font-size: 16px; color: #047857; }
+            .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; text-align: center; }
+            @media print {
+              body { padding: 0; }
+              @page { margin: 1.5cm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="title">INVOICE</div>
+              <div style="font-size: 13px; color: #64748b; margin-top: 4px;"># ${targetInvoice?.invoice_number || "Unnumbered Invoice"}</div>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge">${targetInvoice?.human_verified ? "Human Verified" : docDetail.document.status}</span>
+              <div style="font-size: 12px; color: #64748b; margin-top: 8px;">Date: ${targetInvoice?.invoice_date ? String(targetInvoice.invoice_date).slice(0, 10) : "—"}</div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div>
+              <div class="section-title">Supplier / Vendor</div>
+              <div class="section-val">${targetInvoice?.supplier_name || "—"}</div>
+            </div>
+            <div>
+              <div class="section-title">Customer / Bill To</div>
+              <div class="section-val">${targetInvoice?.customer_name || "—"}</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Item Description</th>
+                <th style="text-align: right;">Qty</th>
+                <th style="text-align: right;">Unit Price</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+          </table>
+
+          <div class="amounts">
+            <div class="amount-row">
+              <span>Subtotal:</span>
+              <span>${targetInvoice?.currency || "USD"} ${Number(targetInvoice?.subtotal || 0).toFixed(2)}</span>
+            </div>
+            <div class="amount-row">
+              <span>Tax / VAT:</span>
+              <span>${targetInvoice?.currency || "USD"} ${Number(targetInvoice?.tax || 0).toFixed(2)}</span>
+            </div>
+            <div class="amount-row total-row">
+              <span>Grand Total:</span>
+              <span>${targetInvoice?.currency || "USD"} ${Number(targetInvoice?.total || 0).toFixed(2)}</span>
+            </div>
+          </div>
+
+          ${auditTrailHtml}
+
+          <div class="footer">
+            Generated via DocIntel AI Platform • Grounded & Verified Extraction • Doc ID: ${docDetail.document.id}
+          </div>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/85 backdrop-blur-md">
@@ -543,6 +691,22 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2">
                     <StatusBadge status={detail.document.status} />
                     <button
+                      onClick={() => downloadJson(detail)}
+                      title="Download Clean Corrected JSON"
+                      className="flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-700 hover:text-white"
+                    >
+                      <Download className="h-3 w-3 text-emerald-400" />
+                      Export JSON
+                    </button>
+                    <button
+                      onClick={() => exportPrintableInvoice(detail)}
+                      title="Print or Save as PDF"
+                      className="flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-700 hover:text-white"
+                    >
+                      <Printer className="h-3 w-3 text-sky-400" />
+                      Print / PDF
+                    </button>
+                    <button
                       onClick={() => triggerReprocess(detail.document.id)}
                       className="rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-700"
                     >
@@ -616,12 +780,22 @@ export default function DashboardPage() {
                               )}
                             </div>
                             {!isEditing ? (
-                              <button
-                                onClick={() => startEditing(inv)}
-                                className="rounded border border-zinc-700 px-2.5 py-1 text-zinc-300 hover:border-emerald-500 hover:text-white"
-                              >
-                                Correct Fields
-                              </button>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => exportPrintableInvoice(detail, inv)}
+                                  title="Print or Save as PDF"
+                                  className="flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-zinc-300 hover:border-sky-500 hover:text-white"
+                                >
+                                  <Printer className="h-3 w-3 text-sky-400" />
+                                  PDF
+                                </button>
+                                <button
+                                  onClick={() => startEditing(inv)}
+                                  className="rounded border border-zinc-700 px-2.5 py-1 text-zinc-300 hover:border-emerald-500 hover:text-white"
+                                >
+                                  Correct Fields
+                                </button>
+                              </div>
                             ) : (
                               <div className="flex gap-1.5">
                                 <button
