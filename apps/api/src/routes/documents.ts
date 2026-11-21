@@ -11,10 +11,10 @@ import { config } from "../config.js";
 const router = Router();
 
 // ---------------------------------------------------------------------------
-// 1. POST /api/documents/upload
+// 1. POST /api/documents/upload and POST /api/documents
 // ---------------------------------------------------------------------------
 router.post(
-  "/upload",
+  ["/upload", "/"],
   uploadRateLimiter,
   multerUpload.array("files", 20),
   async (req: Request, res: Response) => {

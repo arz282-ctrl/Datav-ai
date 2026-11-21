@@ -1,4 +1,14 @@
-FROM node:20-alpine
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json tsconfig.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build && npm prune --omit=dev
+
+FROM node:20-alpine AS runner
 
 # Fixed non-root user UID/GID 10001
 RUN addgroup -g 10001 appgroup && \
@@ -9,12 +19,9 @@ RUN mkdir -p /data/uploads && chown -R 10001:10001 /data/uploads
 
 WORKDIR /app
 
-COPY package*.json tsconfig.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build && npm prune --omit=dev
-RUN chown -R 10001:10001 /app
+COPY --from=builder --chown=10001:10001 /app/package*.json ./
+COPY --from=builder --chown=10001:10001 /app/node_modules ./node_modules
+COPY --from=builder --chown=10001:10001 /app/dist ./dist
 
 USER 10001:10001
 

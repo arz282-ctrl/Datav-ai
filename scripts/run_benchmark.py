@@ -19,7 +19,7 @@ import httpx
 from rapidfuzz import fuzz
 
 DEFAULT_API_URL = os.environ.get("API_URL", "http://localhost:4000")
-DEFAULT_API_KEY = os.environ.get("API_KEY", "dev_secret_key_12345")
+DEFAULT_API_KEY = os.environ.get("API_KEY", "docintel-test-api-key-2026-secure-token")
 
 
 def parse_args():
@@ -168,48 +168,56 @@ def run_benchmark(args):
             with httpx.Client(timeout=30.0) as client:
                 with open(file_path, "rb") as f_data:
                     files = {"files": (filename, f_data)}
-                    resp = client.post(f"{api_url}/api/documents", headers=headers, files=files)
+                    resp = client.post(f"{api_url}/api/documents/upload", headers=headers, files=files)
+                    if resp.status_code == 404:
+                        f_data.seek(0)
+                        resp = client.post(f"{api_url}/api/documents", headers=headers, files=files)
                     upload_status = resp.status_code
 
                     if upload_status == 415 or upload_status == 400:
                         # Rejected upfront by magic bytes / MIME validator
                         final_status = "REJECTED_BY_GATEWAY"
-                        elapsed = time.time() - t0
                     elif upload_status in (200, 201, 207):
                         resp_json = resp.json()
+                        results_created = resp_json.get("results", [])
                         docs_created = resp_json.get("documents", [])
-                        if docs_created:
+                        if results_created:
+                            doc_id = results_created[0].get("documentId") or results_created[0].get("id")
+                        elif docs_created:
                             doc_id = docs_created[0].get("id")
                         else:
                             doc_id = resp_json.get("id")
 
                         # Poll status until terminal state or timeout (60s)
-                        poll_start = time.time()
-                        while time.time() - poll_start < 60:
-                            s_resp = client.get(f"{api_url}/api/documents/{doc_id}/status", headers=headers)
-                            if s_resp.status_code == 200:
-                                s_data = s_resp.json()
-                                st = s_data.get("status")
-                                if st in ("COMPLETED", "FAILED"):
-                                    final_status = st
-                                    break
-                            time.sleep(0.5)
+                        if doc_id:
+                            poll_start = time.time()
+                            while time.time() - poll_start < 60:
+                                s_resp = client.get(f"{api_url}/api/documents/{doc_id}/status", headers=headers)
+                                if s_resp.status_code == 200:
+                                    s_data = s_resp.json()
+                                    st = s_data.get("status")
+                                    if st in ("COMPLETED", "NEEDS_REVIEW", "FAILED"):
+                                        final_status = st
+                                        break
+                                time.sleep(0.5)
 
-                        elapsed = time.time() - t0
+                            # Fetch detail
+                            if final_status in ("COMPLETED", "NEEDS_REVIEW", "FAILED"):
+                                d_resp = client.get(f"{api_url}/api/documents/{doc_id}", headers=headers)
+                                if d_resp.status_code == 200:
+                                    d_data = d_resp.json()
+                                    invoices = d_data.get("invoices", [])
+                                    extracted = invoices[0] if invoices else (d_data.get("extracted", {}) or {})
+                                    flags_raw = d_data.get("validation_flags") or d_data.get("flags") or []
+                                    flags_emitted = [f.get("rule_code") for f in flags_raw if isinstance(f, dict)]
 
-                        # Fetch detail
-                        if final_status == "COMPLETED" or final_status == "FAILED":
-                            d_resp = client.get(f"{api_url}/api/documents/{doc_id}", headers=headers)
-                            if d_resp.status_code == 200:
-                                d_data = d_resp.json()
-                                extracted = d_data.get("extracted", {}) or {}
-                                flags_emitted = [f.get("rule_code") for f in d_data.get("flags", [])]
+                    elapsed = time.time() - t0
 
             latencies.append(elapsed)
 
             # Evaluate fields if invoice
             field_eval = {}
-            if not is_corrupt and not is_ledger and final_status == "COMPLETED":
+            if not is_corrupt and not is_ledger and final_status in ("COMPLETED", "NEEDS_REVIEW"):
                 field_eval = compare_fields(extracted, ground_truth)
                 for f_name, passed in field_eval.items():
                     field_scores[f_name].append(1 if passed else 0)
