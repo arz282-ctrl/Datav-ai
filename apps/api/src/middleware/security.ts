@@ -39,7 +39,7 @@ export const securityHeaders = helmet({
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
     // Allow local development, docker internal, and empty origin (server-to-server)
-    if (!origin || /^http:\/\/(localhost|127\.0\.0\.1|web)(:[0-9]+)?$/.test(origin)) {
+    if (!origin || /^http:\/\/(localhost|127\.0\.0\.1|web)(:[0-9]+)?$/.test(origin) || /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error("CORS not allowed for this origin"));

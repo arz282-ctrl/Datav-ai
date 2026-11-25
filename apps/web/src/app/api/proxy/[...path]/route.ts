@@ -12,7 +12,7 @@ async function proxyRequest(request: NextRequest, params: { path: string[] }) {
   // Pass along existing headers
   request.headers.forEach((value, key) => {
     // Skip host header to allow target resolution
-    if (key.toLowerCase() !== "host") {
+    if (!["host", "origin"].includes(key.toLowerCase())) {
       headers.set(key, value);
     }
   });
