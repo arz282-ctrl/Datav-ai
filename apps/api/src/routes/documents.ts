@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import fs from "fs";
+import path from "path";
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { pgPool } from "../db.js";
@@ -82,6 +83,27 @@ router.post(
           `,
           [documentId]
         );
+
+        // Forward/mirror file to worker over HTTP multipart to eliminate serverless volume sync lag
+        if (config.workerInternalUrl) {
+          try {
+            const formData = new FormData();
+            const fileBlob = new Blob([fileBuffer]);
+            const baseFileName = path.basename(finalFilePath);
+            formData.append("file", fileBlob, baseFileName);
+            formData.append("filename", baseFileName);
+            await fetch(`${config.workerInternalUrl}/upload`, {
+              method: "POST",
+              body: formData,
+              signal: AbortSignal.timeout(5000),
+            });
+          } catch (workerUploadErr) {
+            console.warn(
+              "[Worker Upload Warning] Could not mirror upload to worker HTTP endpoint:",
+              workerUploadErr instanceof Error ? workerUploadErr.message : workerUploadErr
+            );
+          }
+        }
 
         // Enqueue BullMQ job
         await ingestQueue.add("ingest-task", {

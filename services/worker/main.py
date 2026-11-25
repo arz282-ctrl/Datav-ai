@@ -5,7 +5,7 @@ import os
 import psutil
 from contextlib import asynccontextmanager
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
 from bullmq import Worker, Job
 
@@ -27,6 +27,9 @@ ingest_worker: Optional[Worker] = None
 revalidate_worker: Optional[Worker] = None
 
 def get_redis_opts():
+    redis_url = os.environ.get("REDIS_URL")
+    if redis_url:
+        return redis_url
     return {
         "host": os.environ.get("REDIS_HOST", "localhost"),
         "port": int(os.environ.get("REDIS_PORT", "6379")),
@@ -63,6 +66,8 @@ async def lifespan(app: FastAPI):
                 "connection": redis_opts,
                 "concurrency": 2,
                 "lockDuration": 30000,
+                "stalledInterval": 60000,
+                "skipVersionCheck": True,
                 "prefix": QUEUE_PREFIX,
             }
         )
@@ -74,6 +79,8 @@ async def lifespan(app: FastAPI):
                 "connection": redis_opts,
                 "concurrency": 4,
                 "lockDuration": 30000,
+                "stalledInterval": 60000,
+                "skipVersionCheck": True,
                 "prefix": QUEUE_PREFIX,
             }
         )
@@ -107,6 +114,28 @@ def health():
     return {
         "status": "ok",
         "rss_mb": round(rss_mb, 2)
+    }
+
+@app.post("/upload")
+async def upload_endpoint(
+    file: UploadFile = File(...),
+    filename: Optional[str] = Form(None)
+):
+    """Direct HTTP multipart upload receiver to eliminate serverless volume synchronization lag."""
+    target_name = filename or file.filename or "upload.bin"
+    safe_name = os.path.basename(target_name)
+    upload_dir = os.environ.get("DATA_UPLOADS_DIR", "/data/uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    target_path = os.path.join(upload_dir, safe_name)
+
+    contents = await file.read()
+    with open(target_path, "wb") as f:
+        f.write(contents)
+
+    return {
+        "status": "ok",
+        "storedPath": target_path,
+        "bytes": len(contents)
     }
 
 @app.post("/embed", response_model=EmbedResponse)

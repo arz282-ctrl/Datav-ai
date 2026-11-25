@@ -10,12 +10,26 @@ from psycopg.rows import dict_row
 _pool: Optional[AsyncConnectionPool] = None
 
 def get_connection_string() -> str:
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        ssl_required = (
+            os.environ.get("POSTGRES_SSL", "").lower() in ("true", "1")
+            or "neon.tech" in db_url
+        )
+        if ssl_required and "sslmode=" not in db_url:
+            sep = "&" if "?" in db_url else "?"
+            db_url = f"{db_url}{sep}sslmode=require"
+        return db_url
+
     host = os.environ.get("POSTGRES_HOST", "localhost")
     port = os.environ.get("POSTGRES_PORT", "5432")
     db = os.environ.get("POSTGRES_DB", "docintel")
     user = os.environ.get("POSTGRES_USER", "docintel_user")
     pwd = os.environ.get("POSTGRES_PASSWORD", "docintel_password_change_me")
-    return f"postgresql://{user}:{pwd}@{host}:{port}/{db}"
+    ssl = ""
+    if os.environ.get("POSTGRES_SSL", "").lower() in ("true", "1"):
+        ssl = "?sslmode=require"
+    return f"postgresql://{user}:{pwd}@{host}:{port}/{db}{ssl}"
 
 async def init_db_pool():
     global _pool

@@ -59,6 +59,18 @@ An enterprise-grade document extraction, cross-verification, and auditing platfo
 
 ---
 
+## 24/7 Free Cloud Deployment (Vercel + Modal + Neon + Upstash)
+
+Datav-ai can be deployed 24/7 completely free without keeping a local machine running:
+- **Frontend:** Vercel (`apps/web` live at [datav-ai.vercel.app](https://datav-ai.vercel.app))
+- **Backend API & OCR Worker:** Modal (`modal_docintel.py`) with permanent HTTPS endpoints and scale-to-zero
+- **Postgres + pgvector:** Neon Free Tier (`DATABASE_URL`)
+- **BullMQ & Cache:** Upstash Redis Free Tier (`REDIS_URL`)
+
+👉 **See the complete step-by-step setup guide:** [`docs/CLOUD_DEPLOY.md`](docs/CLOUD_DEPLOY.md)
+
+---
+
 ## Quickstart with Docker Compose
 
 ### 1. Prerequisites

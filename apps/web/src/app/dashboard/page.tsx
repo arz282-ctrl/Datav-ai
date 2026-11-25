@@ -360,7 +360,21 @@ export default function DashboardPage() {
         method: "POST",
         body: formData,
       });
-      const json = await res.json();
+      let json: any = null;
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        try {
+          json = await res.json();
+        } catch {
+          json = null;
+        }
+      }
+      if (!json) {
+        const rawText = await res.text();
+        const sanitized = rawText.replace(/<[^>]*>/g, " ").trim().slice(0, 200);
+        json = { error: sanitized || `Upload failed with HTTP ${res.status}` };
+      }
+
       if (res.ok && json.results) {
         setUploadResults(json.results);
         setActiveFilter(null);

@@ -36,10 +36,25 @@ export const securityHeaders = helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
 });
 
+const configuredOrigins = (config.corsOrigins || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
-    // Allow local development, docker internal, and empty origin (server-to-server)
-    if (!origin || /^http:\/\/(localhost|127\.0\.0\.1|web)(:[0-9]+)?$/.test(origin) || /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) {
+    // Allow local development, docker internal, empty origin (server-to-server), and Vercel domains
+    if (
+      !origin ||
+      /^https?:\/\/(localhost|127\.0\.0\.1|web)(:[0-9]+)?$/i.test(origin) ||
+      /^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/i.test(origin) ||
+      configuredOrigins.some(
+        (allowed) =>
+          allowed === "*" ||
+          origin === allowed ||
+          (allowed.startsWith("*.") && origin.endsWith(allowed.slice(1)))
+      )
+    ) {
       callback(null, true);
     } else {
       callback(new Error("CORS not allowed for this origin"));
@@ -47,6 +62,7 @@ export const corsMiddleware = cors({
   },
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "X-API-Key", "Authorization"],
+  credentials: true,
 });
 
 export const generalRateLimiter = rateLimit({
