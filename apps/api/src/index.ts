@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { config } from "./config.js";
-import { checkDbHealth } from "./db.js";
+import { checkDbHealth, runDbInit } from "./db.js";
 import {
   authenticateApiKey,
   corsMiddleware,
@@ -10,6 +10,9 @@ import {
 import documentsRouter from "./routes/documents.js";
 
 const app = express();
+
+// Trust proxy for express-rate-limit behind Vercel / Modal proxies
+app.set("trust proxy", 1);
 
 // Security middlewares
 app.use(securityHeaders);
@@ -34,6 +37,11 @@ app.get("/health", async (_req: Request, res: Response) => {
 app.use("/api/documents", authenticateApiKey, documentsRouter);
 
 if (process.env.NODE_ENV !== "test") {
+  if (config.autoMigrate) {
+    runDbInit().catch((err) => {
+      console.warn("[DB Warning] Auto schema initialization encountered an error:", err.message);
+    });
+  }
   app.listen(config.port, () => {
     console.log(`AI Document Intelligence API listening on port ${config.port}`);
   });

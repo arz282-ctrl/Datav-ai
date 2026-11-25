@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.API_INTERNAL_URL || "http://127.0.0.1:4000";
+const API_BASE_URL = (process.env.API_INTERNAL_URL || "http://127.0.0.1:4000").replace(/\/+$/, "");
 const API_KEY = process.env.API_KEY || "docintel-test-api-key-2026-secure-token";
 
 async function proxyRequest(request: NextRequest, params: { path: string[] }) {
@@ -9,10 +9,10 @@ async function proxyRequest(request: NextRequest, params: { path: string[] }) {
   const targetUrl = `${API_BASE_URL}/api/${targetPath}${searchParams ? `?${searchParams}` : ""}`;
 
   const headers = new Headers();
-  // Pass along existing headers
+  // Pass along headers, explicitly omitting host, origin, and content-length
   request.headers.forEach((value, key) => {
-    // Skip host header to allow target resolution
-    if (!["host", "origin"].includes(key.toLowerCase())) {
+    const lower = key.toLowerCase();
+    if (!["host", "origin", "content-length"].includes(lower)) {
       headers.set(key, value);
     }
   });
@@ -23,6 +23,7 @@ async function proxyRequest(request: NextRequest, params: { path: string[] }) {
   const reqInit: RequestInit = {
     method: request.method,
     headers,
+    signal: AbortSignal.timeout(60000), // 60s timeout for cloud serverless cold-starts
   };
 
   if (["POST", "PATCH", "PUT"].includes(request.method)) {
@@ -34,9 +35,33 @@ async function proxyRequest(request: NextRequest, params: { path: string[] }) {
 
   try {
     const upstreamRes = await fetch(targetUrl, reqInit);
+    const contentType = upstreamRes.headers.get("content-type") || "";
+
+    // If upstream returned an error status and non-JSON content (e.g. HTML 502/504 proxy page),
+    // normalize it to a clean JSON error response so the client never encounters 'Unexpected token <'
+    if (!upstreamRes.ok && !contentType.includes("application/json")) {
+      const rawText = await upstreamRes.text();
+      const sanitized = rawText
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 300);
+
+      return NextResponse.json(
+        {
+          error: `Upstream service returned HTTP ${upstreamRes.status} (${upstreamRes.statusText})`,
+          details: sanitized || "Upstream service cold-start or connection failure",
+        },
+        { status: upstreamRes.status }
+      );
+    }
+
     const resHeaders = new Headers();
     upstreamRes.headers.forEach((val, key) => {
-      resHeaders.set(key, val);
+      const lower = key.toLowerCase();
+      if (!["content-encoding", "content-length"].includes(lower)) {
+        resHeaders.set(key, val);
+      }
     });
 
     return new NextResponse(upstreamRes.body, {
@@ -45,9 +70,15 @@ async function proxyRequest(request: NextRequest, params: { path: string[] }) {
       headers: resHeaders,
     });
   } catch (err: any) {
+    const isTimeout = err?.name === "TimeoutError" || err?.message?.toLowerCase().includes("timeout");
     return NextResponse.json(
-      { error: "Proxy upstream request failed", details: err.message },
-      { status: 502 }
+      {
+        error: isTimeout
+          ? "Upstream service timeout (backend cold-start took longer than 60s)"
+          : "Proxy upstream request failed",
+        details: err?.message || String(err),
+      },
+      { status: isTimeout ? 504 : 502 }
     );
   }
 }

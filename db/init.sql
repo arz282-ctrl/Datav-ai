@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS documents (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS trg_documents_updated_at ON documents;
 CREATE TRIGGER trg_documents_updated_at
 BEFORE UPDATE ON documents
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -81,6 +82,7 @@ CREATE TABLE IF NOT EXISTS extracted_invoices (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS trg_extracted_invoices_updated_at ON extracted_invoices;
 CREATE TRIGGER trg_extracted_invoices_updated_at
 BEFORE UPDATE ON extracted_invoices
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -159,6 +161,7 @@ CREATE TABLE IF NOT EXISTS processing_jobs (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+DROP TRIGGER IF EXISTS trg_processing_jobs_updated_at ON processing_jobs;
 CREATE TRIGGER trg_processing_jobs_updated_at
 BEFORE UPDATE ON processing_jobs
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

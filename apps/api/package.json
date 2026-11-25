@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
+    "db:init": "tsx scripts/init_db.ts",
     "test": "vitest run",
     "smoke:produce": "tsx scripts/smoke_producer.ts"
   },
